@@ -5,9 +5,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include "thread.h"
 
-typedef struct MEMPARTITION {
-    
+typedef struct {
+    struct THREAD *thread;
 } MEMPARTITION;
 
 // State = 0;

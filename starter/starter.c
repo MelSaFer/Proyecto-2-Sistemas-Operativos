@@ -6,6 +6,8 @@
 #include <semaphore.h>
 #include <fcntl.h>
 #include <errno.h>
+#include "../sharedMem.h"
+#include "../thread.h"
 
 
 #define PROCESS_SHARED_MEMORY "shared_mem"
@@ -16,9 +18,7 @@ int processSharedMemId;
 // Shared Memory Keys for the process
 key_t processSharedMemoryKey;
 // Process Shared Memory
-struct SHAREDDATA {
-    int availableLines;
-};
+struct SHAREDMEM* sharedMemory;
 
 sem_t *sharedMemorySemaphore, *logsSemaphore;
 
@@ -45,13 +45,13 @@ int startEnvironment(int lines) {
     printf("\nShared memory key: %d\n", processSharedMemoryKey);
 
     // Create the shared memory
-    processSharedMemId = shmget(processSharedMemoryKey, sizeof(struct SHAREDDATA) * lines, 0666 | IPC_CREAT | IPC_EXCL);
+    processSharedMemId = shmget(processSharedMemoryKey, sizeof(struct THREAD) * lines, 0666 | IPC_CREAT | IPC_EXCL);
     // Validate the creation of the shared memory
     if (processSharedMemId < 0) {
         // If the shared memory already exists, get it
         if (errno == EEXIST) {
             // Get the shared memory
-            processSharedMemId = shmget(processSharedMemoryKey, sizeof(struct SHAREDDATA) * lines, 0666);
+            processSharedMemId = shmget(processSharedMemoryKey, sizeof(struct THREAD) * lines, 0666);
             // Validate the shared memory
             if (processSharedMemId < 0) {
                 perror("Error getting the shared memory:/)");

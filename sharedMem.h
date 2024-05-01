@@ -6,8 +6,11 @@
 #include <string.h>
 #include <unistd.h>
 
-typedef struct SHAREDMEM {
+#define MAX_LINES 100
+
+typedef struct {
     int lines;
+    struct MEMPARTITION partitions[MAX_LINES];
 } SHAREDMEM;
 
 // State = 0;
