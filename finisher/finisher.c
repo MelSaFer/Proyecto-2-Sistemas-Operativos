@@ -1,6 +1,7 @@
 #include <sys/ipc.h>
 #include <sys/shm.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 int finishEnvironment(key_t processSharedMemoryKey) {
     // Obtener el identificador de la memoria compartida
