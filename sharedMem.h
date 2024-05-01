@@ -5,13 +5,14 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include "memPartition.h"
 
 #define MAX_LINES 100
 
-typedef struct {
+struct SHAREDMEM{
     int lines;
     struct MEMPARTITION partitions[MAX_LINES];
-} SHAREDMEM;
+};
 
 // State = 0;
 

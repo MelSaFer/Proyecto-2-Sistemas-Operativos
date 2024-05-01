@@ -7,10 +7,8 @@
 #include <unistd.h>
 #include "thread.h"
 
-typedef struct {
+struct MEMPARTITION{
     struct THREAD *thread;
-} MEMPARTITION;
-
-// State = 0;
+};
 
 #endif // MEMPARTITION_H

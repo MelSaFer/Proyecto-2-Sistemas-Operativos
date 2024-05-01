@@ -14,14 +14,14 @@ enum State {
     FINISHED,
     DEAD};
 
-typedef struct {
+struct THREAD{
     pthread_t pid;
     int size;
     int time;
     int state;
     time_t start;
     time_t end;
-} THREAD;
+};
 
 // State = 0;
 

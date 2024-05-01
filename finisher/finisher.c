@@ -23,7 +23,7 @@ int finishEnvironment(key_t processSharedMemoryKey) {
 
 
 int main() {
-    key_t processSharedMemoryKey = 22335547;
+    key_t processSharedMemoryKey = 22337049;
     finishEnvironment(processSharedMemoryKey);
     return 0;
 }
