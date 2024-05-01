@@ -10,12 +10,15 @@
 #include "../thread.h"
 
 
-#define PROCESS_SHARED_MEMORY "shared_mem"
+#define PROCESS_SHARED_MEMORY "process_mem"
 #define PROCESS_SHARED_MEMORY_ID 1
+
+#define SHARED_MEMORY "shared_mem"
+#define SHARED_MEMORY_ID 1
 
 // Shared Memory Ids for the process
 int processSharedMemId;
-int controlSharedMemory;
+int controlSharedMemoryId;
 // Shared Memory Keys for the process
 key_t processSharedMemoryKey;
 key_t controlSharedMemoryKey;
@@ -68,30 +71,42 @@ int startEnvironment(int lines) {
         printf("\nShared memory segment created with id %d\n", processSharedMemId);
     }
 
+    //--------------------------------------------------------------------------------	
+    // Create the key we are going to use for the shared memory
+    controlSharedMemoryKey = ftok(SHARED_MEMORY, SHARED_MEMORY_ID);
+    // Validate the creation of the key
+    if (controlSharedMemoryKey == -1) {
+        perror("Error creating the key for the control shared memory");
+        exit(1);
+    }
+    printf("\control shared memory key: %d\n", controlSharedMemoryKey);
+
     // Create the shared memory for the memory
-    controlSharedMemory = shmget(controlSharedMemoryKey, sizeof(struct SHAREDMEM), 0666 | IPC_CREAT | IPC_EXCL);
+    controlSharedMemoryId = shmget(controlSharedMemoryKey, sizeof(struct SHAREDMEM), 0666 | IPC_CREAT | IPC_EXCL);
     // Validate the creation of the shared memory
-    if (controlSharedMemory < 0) {
+    if (controlSharedMemoryId < 0) {
         // If the shared memory already exists, get it
         if (errno == EEXIST) {
             // Get the shared memory
-            controlSharedMemory = shmget(controlSharedMemoryKey, sizeof(struct SHAREDMEM), 0666);
+            controlSharedMemoryId = shmget(controlSharedMemoryKey, sizeof(struct SHAREDMEM), 0666);
             // Validate the shared memory
-            if (controlSharedMemory < 0) {
+            if (controlSharedMemoryId < 0) {
                 perror("Error getting the shared memory:/)");
                 exit(1);
             }
-            printf("\nExisting shared memory segment with id %d opened\n", controlSharedMemory);
+            
+
+            printf("\nExisting shared memory segment with id %d opened\n", controlSharedMemoryId);
         } else {
             perror("Error creating the shared memory");
             exit(1);
         }
     } else {
-        printf("\nShared memory segment created with id %d\n", controlSharedMemory);
+        printf("\nShared memory segment created with id %d\n", controlSharedMemoryId);
     }
 
     // Attach shared control memory
-    sharedMemory = (struct SHAREDDATA*) shmat(sharedControlMemoryId, NULL, 0);
+    sharedMemory = (struct SHAREDMEM*) shmat(controlSharedMemoryId, NULL, 0);
     // Validate shared control memory
     if (sharedMemory == (void *) -1) {
         perror("shmat");
@@ -102,11 +117,11 @@ int startEnvironment(int lines) {
     // Set initial values to control structure of shared control memory
     sharedMemory->lines = lines;
     for (int i = 0; i < lines; i++) {
-        sharedMemory->partitions[i].thread = NULL;
+        sharedMemory->partitions[i] = NULL;
     }
 
     // Close shared control memory
-    shmdt(sharedControlMemoryPointer);
+    shmdt(sharedMemory);
 
     // CREATE SEMAPHORES
     // Unlink first to ensure the semaphore can be created
@@ -131,7 +146,7 @@ int startEnvironment(int lines) {
     sem_close(logsSemaphore);
 
     printf("\nShared memory segment created with id %d\n", processSharedMemId);
-    printf("\nShared memory segment created with id %d\n", controlSharedMemory);
+    printf("\nShared memory segment created with id %d\n", controlSharedMemoryId);
     
     return 0; // Return success
 
