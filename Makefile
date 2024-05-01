@@ -11,7 +11,7 @@ EXECUTABLES = starter_ finisher_
 all: $(EXECUTABLES)
 
 # Reglas para compilar cada ejecutable
-starter_: starter/starter.c
+starter_: starter/starter.c thread.h mempartition.h sharedMem.h
 	gcc $(CFLAGS) -o starter_ starter/starter.c $(LIBS)
 
 finisher_: finisher/finisher.c

@@ -6,6 +6,8 @@
 #include <semaphore.h>
 #include <fcntl.h>
 #include <errno.h>
+#include "../sharedMem.h"
+#include "../thread.h"
 
 
 #define PROCESS_SHARED_MEMORY "shared_mem"
@@ -13,12 +15,12 @@
 
 // Shared Memory Ids for the process
 int processSharedMemId;
+int controlSharedMemory;
 // Shared Memory Keys for the process
 key_t processSharedMemoryKey;
+key_t controlSharedMemoryKey;
 // Process Shared Memory
-struct SHAREDDATA {
-    int availableLines;
-};
+struct SHAREDMEM* sharedMemory;
 
 sem_t *sharedMemorySemaphore, *logsSemaphore;
 
@@ -44,14 +46,14 @@ int startEnvironment(int lines) {
     }
     printf("\nShared memory key: %d\n", processSharedMemoryKey);
 
-    // Create the shared memory
-    processSharedMemId = shmget(processSharedMemoryKey, sizeof(struct SHAREDDATA) * lines, 0666 | IPC_CREAT | IPC_EXCL);
+    // Create the shared memory for the process
+    processSharedMemId = shmget(processSharedMemoryKey, sizeof(struct THREAD) * lines, 0666 | IPC_CREAT | IPC_EXCL);
     // Validate the creation of the shared memory
     if (processSharedMemId < 0) {
         // If the shared memory already exists, get it
         if (errno == EEXIST) {
             // Get the shared memory
-            processSharedMemId = shmget(processSharedMemoryKey, sizeof(struct SHAREDDATA) * lines, 0666);
+            processSharedMemId = shmget(processSharedMemoryKey, sizeof(struct THREAD) * lines, 0666);
             // Validate the shared memory
             if (processSharedMemId < 0) {
                 perror("Error getting the shared memory:/)");
@@ -65,6 +67,46 @@ int startEnvironment(int lines) {
     } else {
         printf("\nShared memory segment created with id %d\n", processSharedMemId);
     }
+
+    // Create the shared memory for the memory
+    controlSharedMemory = shmget(controlSharedMemoryKey, sizeof(struct SHAREDMEM), 0666 | IPC_CREAT | IPC_EXCL);
+    // Validate the creation of the shared memory
+    if (controlSharedMemory < 0) {
+        // If the shared memory already exists, get it
+        if (errno == EEXIST) {
+            // Get the shared memory
+            controlSharedMemory = shmget(controlSharedMemoryKey, sizeof(struct SHAREDMEM), 0666);
+            // Validate the shared memory
+            if (controlSharedMemory < 0) {
+                perror("Error getting the shared memory:/)");
+                exit(1);
+            }
+            printf("\nExisting shared memory segment with id %d opened\n", controlSharedMemory);
+        } else {
+            perror("Error creating the shared memory");
+            exit(1);
+        }
+    } else {
+        printf("\nShared memory segment created with id %d\n", controlSharedMemory);
+    }
+
+    // Attach shared control memory
+    sharedMemory = (struct SHAREDDATA*) shmat(sharedControlMemoryId, NULL, 0);
+    // Validate shared control memory
+    if (sharedMemory == (void *) -1) {
+        perror("shmat");
+        exit(1);
+    }
+    printf("\nShared control memory attached\n");
+
+    // Set initial values to control structure of shared control memory
+    sharedMemory->lines = lines;
+    for (int i = 0; i < lines; i++) {
+        sharedMemory->partitions[i].thread = NULL;
+    }
+
+    // Close shared control memory
+    shmdt(sharedControlMemoryPointer);
 
     // CREATE SEMAPHORES
     // Unlink first to ensure the semaphore can be created
@@ -89,12 +131,19 @@ int startEnvironment(int lines) {
     sem_close(logsSemaphore);
 
     printf("\nShared memory segment created with id %d\n", processSharedMemId);
+    printf("\nShared memory segment created with id %d\n", controlSharedMemory);
     
     return 0; // Return success
 
 }
 
 int main() {
-    startEnvironment(5);
+    // Input the number of lines
+    int lines;
+    printf("Enter the number of lines: ");
+    scanf("%d", &lines);
+
+    // Start the environment
+    startEnvironment(lines);
     return 0;
 }
