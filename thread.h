@@ -14,15 +14,20 @@ enum State {
     FINISHED,
     DEAD};
 
+enum ActionType { 
+    allocation,
+    deallocate
+    };
+
 struct THREAD{
     pthread_t pid;
     int size;
     int time;
-    int state;
-    time_t start;
-    time_t end;
+    enum State state;
+    enum ActionType actionType;
+    //time_t start;
+    //time_t end;
 };
 
-// State = 0;
 
 #endif // THREAD_H
