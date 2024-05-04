@@ -38,7 +38,7 @@ int finishEnvironment(key_t processSharedMemoryKey, key_t controlSharedMemory) {
 
 int main() {
     key_t processSharedMemoryKey = 22337049;
-    key_t controlSharedMemory = 22337050;
+    key_t controlSharedMemory = 22337179;
     finishEnvironment(processSharedMemoryKey, controlSharedMemory);
     return 0;
 }

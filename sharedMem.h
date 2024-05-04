@@ -13,7 +13,7 @@
 struct SHAREDMEM{
     int lines;
     //struct MEMPARTITION partitions[MAX_LINES];
-    struct THREAD partitions[MAX_LINES];
+    struct THREAD *partitions[MAX_LINES];
 };
 
 // State = 0;
