@@ -60,7 +60,7 @@ void createThread() {
 
     data->size = generateRandomNumber(MIN_SIZE, MAX_SIZE);
     data->time = generateRandomNumber(MIN_TIME, MAX_TIME);
-    data->pid = ++threadsQuantity;
+    data->pid = threadsQuantity;
 
     pthread_t thread;
     if (pthread_create(&thread, NULL, allocateProcess, (void *)data) != 0) {
@@ -68,6 +68,7 @@ void createThread() {
         free(data);
     } else {
         pthread_join(thread, NULL);
+        ++threadsQuantity;
     }
 }
 
