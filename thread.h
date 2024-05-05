@@ -24,7 +24,7 @@ struct THREAD{
     int size;
     int time;
     enum State state;
-    enum ActionType actionType;
+    // enum ActionType actionType;
     //time_t start;
     //time_t end;
 };

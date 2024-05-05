@@ -5,7 +5,7 @@ CFLAGS = -Wall -g
 LIBS = -lpthread -lrt
 
 # Nombres de los ejecutables
-EXECUTABLES = starter_ finisher_
+EXECUTABLES = starter_ finisher_ producer_
 
 # Regla por defecto
 all: $(EXECUTABLES)
@@ -16,6 +16,9 @@ starter_: starter/starter.c thread.h mempartition.h sharedMem.h
 
 finisher_: finisher/finisher.c
 	gcc $(CFLAGS) -o finisher_ finisher/finisher.c $(LIBS)
+
+producer_: producer/producer.c thread.h mempartition.h sharedMem.h
+	gcc $(CFLAGS) -o producer_ producer/producer.c $(LIBS)
 
 # Regla para limpiar archivos objeto y ejecutables
 clean:

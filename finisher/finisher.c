@@ -1,3 +1,15 @@
+/*
+Instituto Tecnológico de Costa Rica
+Escuela de Ingeniería en Computación
+Curso: Principios de Sistemas Operativos
+Profesor: Erika Marín Schumman
+Proyecto 2: Simulación de asignación de memoria
+Estudiantes:
+    - Salas Fernández Melany - 2021121147
+    - Solano Espinoza Moisés - 2021144322
+    - Zelaya Coto Fiorella - 2021453615
+*/
+
 #include <sys/ipc.h>
 #include <sys/shm.h>
 #include <stdio.h>
@@ -37,8 +49,8 @@ int finishEnvironment(key_t processSharedMemoryKey, key_t controlSharedMemory) {
 
 
 int main() {
-    key_t processSharedMemoryKey = 22337049;
-    key_t controlSharedMemory = 22337179;
+    key_t processSharedMemoryKey = 19070989;
+    key_t controlSharedMemory = 19070987;
     finishEnvironment(processSharedMemoryKey, controlSharedMemory);
     return 0;
 }
