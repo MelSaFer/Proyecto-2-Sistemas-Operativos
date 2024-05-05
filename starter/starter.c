@@ -42,7 +42,7 @@ sem_t *sharedMemorySemaphore, *logsSemaphore;
 //start Environment function
 int startEnvironment(int lines) {
 
-    const char *filepath = "shared_mem";
+    const char *filepath = SHARED_MEMORY;
     
     // Create the file
     int fd = open(filepath, O_RDWR | O_CREAT, 0666);
