@@ -4,41 +4,55 @@
 #include <stdlib.h>
 
 int finishEnvironment(key_t processSharedMemoryKey, key_t controlSharedMemory) {
-    // Obtener el identificador de la memoria compartida
-    int shmid = shmget(processSharedMemoryKey, 0, 0644);
+    int shmid;
+    shmid = shmget(processSharedMemoryKey, 0, 0644);
     if (shmid == -1) {
-        perror("Error obtaining the shared memory ID");
-        exit(1);
+        perror("1-Error obtaining the shared memory ID");
+        return 1;  // Cambiado de exit(1) a return 1 para un mejor manejo de errores
     }
 
-    // Destruir la memoria compartida
     if (shmctl(shmid, IPC_RMID, NULL) == -1) {
-        perror("Error destroying the shared memory");
-        exit(1);
+        perror("2-Error destroying the shared memory");
+        return 1;  // Cambiado de exit(1) a return 1
     }
     printf("\nShared memory destroyed!!!\n");
-
-    // Obtener el identificador de la memoria compartida
     shmid = shmget(controlSharedMemory, 0, 0644);
     if (shmid == -1) {
         perror("Error obtaining the shared memory ID");
-        exit(1);
+        return 1;  // Cambiado de exit(1) a return 1
     }
 
-    // Destruir la memoria compartida
     if (shmctl(shmid, IPC_RMID, NULL) == -1) {
         perror("Error destroying the shared memory");
-        exit(1);
+        return 1;  // Cambiado de exit(1) a return 1
     }
     printf("\nShared memory destroyed!!!\n");
+
+    
 
     return 0;
 }
 
+int getKeys() {
+    const char *path1 = "process_mem";
+    const char *path2 = "shared_mem";
+    int id1 = 1, id2 = 1; 
+
+    key_t processSharedMemoryKey = ftok(path1, id1);
+    key_t controlSharedMemory = ftok(path2, id2);
+
+    if (processSharedMemoryKey == -1 || controlSharedMemory == -1) {
+        perror("ftok failed");
+        return 1;
+    }
+
+    printf("\n 1- Shared memory key: %d\n", processSharedMemoryKey);
+    printf("\n 2- control memory key: %d\n", controlSharedMemory);
+
+    return finishEnvironment(processSharedMemoryKey, controlSharedMemory);
+}
 
 int main() {
-    key_t processSharedMemoryKey = 22337049;
-    key_t controlSharedMemory = 22337179;
-    finishEnvironment(processSharedMemoryKey, controlSharedMemory);
-    return 0;
+    int result = getKeys();
+    return result;
 }
