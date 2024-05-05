@@ -32,13 +32,58 @@ struct SHAREDMEM* sharedControlMemoryPointer;
 sem_t *sharedMemorySemaphore;
 
 int threadsQuantity = 0;
+int algorithm = 0;
 
 int generateRandomNumber(int min, int max) {
     return min + rand() % (max - min + 1);
 }
 
+//ALGORITMS OF MEM ASSIGNATION
+void firstFit(void *arg){
+
+}
+
+void bestFit(void *arg){
+
+}
+
+void worstFit(void *arg){
+
+}
+
+//----------------------------------------------------
+
+void registerProcess(void *arg){
+
+}
+
+void deallocateProcess(void *arg) {
+    struct THREAD *thread = (struct THREAD *)arg;
+    // sem_wait(sharedMemorySemaphore);  // Esperar por el semáforo antes de modificar la memoria compartida
+
+    //
+    // printf("Thread %d finished.\n", pid);
+
+    // sem_post(sharedMemorySemaphore);  // Liberar el semáforo después de modificar
+    free(thread);  // Liberar la memoria del hilo
+    return NULL;
+}   
+
+/*----------------------------------------------------
+Allocate the process in memory
+Entries:
+    void *arg: thread data
+----------------------------------------------------*/
 void *allocateProcess(void *arg) {
     struct THREAD *thread = (struct THREAD *)arg;
+    if(algorithm == 0){
+        firstFit(thread);
+    }else if(algorithm == 1){
+        bestFit(thread);
+    }else{
+        worstFit(thread);
+    }
+
     // sem_wait(sharedMemorySemaphore);  // Esperar por el semáforo antes de modificar la memoria compartida
 
     // // Lógica de asignación de memoria aquí
@@ -47,7 +92,9 @@ void *allocateProcess(void *arg) {
     // sem_post(sharedMemorySemaphore);  // Liberar el semáforo después de modificar
     // sleep(thread->time);  // Simular el tiempo de ejecución
 
-    free(thread);  // Liberar la memoria del hilo
+    //Calls dellocate
+    deallocateProcess(thread);
+    
     return NULL;
 }
 
@@ -79,9 +126,19 @@ void createThreads(int num_threads) {
     }
 }
 
-int main() {
-    srand(time(NULL));
+void start() {
+    int dist = generateRandomNumber(30,60);
+    while(threadsQuantity < 50){
+        createThread();
+    }
+}
 
+int main() {
+
+    //1-ask for the algorithm
+
+    srand(time(NULL));
+    //2- Memory 
     //Accesing shared memory
     key_t key = ftok(SHARED_MEMORY, SHARED_MEMORY_ID);
     int shm_id = shmget(key, sizeof(struct SHAREDMEM), 0666);
@@ -101,10 +158,21 @@ int main() {
         exit(EXIT_FAILURE);
     }
 
-    int num_threads = 5;  // Suponiendo que queremos crear 5 hilos
-    for (int i = 0; i < num_threads; i++) {
-        createThread();
-    }
+    
+    //WHILE
+    start();
+    
+
+    // 3- Gererar random para la distribucion de procesos
+    // 4- Creamos thread 
+    // 5- Asignamos memoria (allocation algorithm)
+
+    //---------------------------
+    
+    // int num_threads = 5;  // Suponiendo que queremos crear 5 hilos
+    // for (int i = 0; i < num_threads; i++) {
+    //     createThread();
+    // }
 
     
     sem_close(sharedMemorySemaphore);
