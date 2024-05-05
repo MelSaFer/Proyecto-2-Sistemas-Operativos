@@ -39,13 +39,13 @@ int generateRandomNumber(int min, int max) {
 
 void *allocateProcess(void *arg) {
     struct THREAD *thread = (struct THREAD *)arg;
-    sem_wait(sharedMemorySemaphore);  // Esperar por el semáforo antes de modificar la memoria compartida
+    // sem_wait(sharedMemorySemaphore);  // Esperar por el semáforo antes de modificar la memoria compartida
 
-    // Lógica de asignación de memoria aquí
-    printf("Thread %d with size %d and time %d started.\n", thread->pid, thread->size, thread->time);
+    // // Lógica de asignación de memoria aquí
+    // printf("Thread %d with size %d and time %d started.\n", thread->pid, thread->size, thread->time);
 
-    sem_post(sharedMemorySemaphore);  // Liberar el semáforo después de modificar
-    sleep(thread->time);  // Simular el tiempo de ejecución
+    // sem_post(sharedMemorySemaphore);  // Liberar el semáforo después de modificar
+    // sleep(thread->time);  // Simular el tiempo de ejecución
 
     free(thread);  // Liberar la memoria del hilo
     return NULL;
