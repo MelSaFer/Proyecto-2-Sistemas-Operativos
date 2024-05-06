@@ -38,12 +38,41 @@ int generateRandomNumber(int min, int max) {
     return min + rand() % (max - min + 1);
 }
 
+//Prints the pids of the threads in memory
+void printMemory(){
+    for(int i = 0; i < sharedControlMemoryPointer->lines; i++){
+        if(sharedControlMemoryPointer->partitions[i] != NULL){
+            printf("Thread %d in partition %d\n", sharedControlMemoryPointer->partitions[i]->pid, i);
+        }
+    }
+}
+
 //ALGORITMS OF MEM ASSIGNATION
 void firstFit(void *arg){
 
 }
 
 void bestFit(void *arg){
+    // //sharedControlMemoryPointer
+    // struct THREAD *thread = (struct THREAD *)arg;
+    // //asignar el proceso en el primer espacio vacio que sea mayor o igual al tamaño del proceso
+    // int i = 0;
+    // while(i < sharedControlMemoryPointer->lines){
+    //     printf("Buscando espacio en la particion %d\n", i);
+    //     if(sharedControlMemoryPointer->partitions[i] == NULL){
+    //         i++;
+    //     }else{
+    //         if(sharedControlMemoryPointer->partitions[i]->size >= thread->size){
+    //             sem_wait(sharedMemorySemaphore);
+    //             sharedControlMemoryPointer->partitions[i] = thread->pid;
+    //             //prints the threads info
+    //             sem_post(sharedMemorySemaphore);
+    //             printf("Thread %d with size %d and time %d started.\n", thread->pid, thread->size, thread->time);
+    //             break;
+    //         }
+    //         i++;
+    //     }
+    // }
 
 }
 
@@ -66,7 +95,7 @@ void deallocateProcess(void *arg) {
 
     // sem_post(sharedMemorySemaphore);  // Liberar el semáforo después de modificar
     free(thread);  // Liberar la memoria del hilo
-    return NULL;
+    //return NULL;
 }   
 
 /*----------------------------------------------------
@@ -75,10 +104,14 @@ Entries:
     void *arg: thread data
 ----------------------------------------------------*/
 void *allocateProcess(void *arg) {
+    
     struct THREAD *thread = (struct THREAD *)arg;
+    //Pirnt the thread info
+    printf("Thread %d with size %d and time %d started.\n", thread->pid, thread->size, thread->time);
     if(algorithm == 0){
         firstFit(thread);
     }else if(algorithm == 1){
+        printf("Best Fit\n");
         bestFit(thread);
     }else{
         worstFit(thread);
@@ -130,12 +163,38 @@ void start() {
     int dist = generateRandomNumber(30,60);
     while(threadsQuantity < 50){
         createThread();
+        //sleep(dist);
     }
+}
+
+int printAlgorithmMenu() {
+    int choice;
+
+    printf("\n+---------------------------------+\n");
+    printf("|   Seleccione un algoritmo de    |\n");
+    printf("|     asignación de memoria:      |\n");
+    printf("+---------------------------------+\n");
+    printf("| 1. First-Fit                    |\n");
+    printf("| 2. Best-Fit                     |\n");
+    printf("| 3. Worst-Fit                    |\n");
+    printf("+---------------------------------+\n");
+    printf("Ingrese su elección (1-3): ");
+    
+    scanf("%d", &choice);
+
+    // Validar la entrada del usuario
+    while (choice < 1 || choice > 3) {
+        printf("Entrada inválida. Por favor, seleccione una opción válida (1-3): ");
+        scanf("%d", &choice);
+    }
+
+    return choice-1;
 }
 
 int main() {
 
     //1-ask for the algorithm
+    algorithm = printAlgorithmMenu();
 
     srand(time(NULL));
     //2- Memory 
@@ -149,7 +208,7 @@ int main() {
         exit(EXIT_FAILURE);
     }
     //CantLineas en memoria
-    printf("Cantidad de lineas en memoria: %d\n", sharedControlMemoryPointer->lines);
+    //printf("Cantidad de lineas en memoria: %d\n", sharedControlMemoryPointer->lines);
 
     // Open the semaphore
     sharedMemorySemaphore = sem_open("sharedMemorySemaphore", 0);
