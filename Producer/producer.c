@@ -35,17 +35,29 @@ sem_t *sharedMemorySemaphore;
 int threadsQuantity = 0;
 int algorithm = 0;
 
+// Function prototypes
+void createThread();
+
+/*----------------------------------------------------
+Function: generateRandomNumber
+Entries:
+   int min: minimum value of the random number
+   int max: maximum value of the random number
+Description:
+   This function generates a random number between the minimum and maximum values provided.
+   It uses the rand() function from the standard library to generate the random number.
+----------------------------------------------------*/
 int generateRandomNumber(int min, int max) {
     return min + rand() % (max - min + 1);
 }
 
-// ----------------------------------------------------
-// Function: paintMemory
-// Description:
-//    This function is in charge of printing the memory partitions and the threads assigned to each partition.
-//    For debugging purposes at the moment.
-//    If a partition is empty, it prints a 0, otherwise it prints the thread ID.
-// ----------------------------------------------------
+/*----------------------------------------------------
+Function: paintMemory
+Description:
+   This function is in charge of printing the memory partitions and the threads assigned to each partition.
+   For debugging purposes at the moment.
+   If a partition is empty, it prints a -, otherwise it prints the thread ID.
+----------------------------------------------------*/
 void paintMemory(){
     for (int i = 0; i < sharedControlMemoryPointer->lines; i++) {
         if (sharedControlMemoryPointer->partitions[i] == NULL) {
@@ -57,9 +69,47 @@ void paintMemory(){
     printf("\n");
 }
 
-//ALGORITMS OF MEM ASSIGNATION
-void firstFit(void *arg){
+//ALGORITMS OF MEMORY ASSIGNATION 
 
+/*----------------------------------------------------
+First Fit Algorithm
+Entries:
+    void *arg: thread data
+Description:
+    This function is in charge of allocating the thread in the memory using the first fit algorithm.
+    The first fit algorithm assigns the thread to the first partition that has enough space to allocate it.
+----------------------------------------------------*/
+void firstFit(void *arg){
+    struct THREAD *thread = (struct THREAD *)arg;
+
+    int size = thread->size;
+    int consecutives = 0;
+    int start = 0;
+
+    // Iterate through the array of partitions to find the first empty space
+    for (int i = 0; i < sharedControlMemoryPointer->lines; i++){
+        
+        // if the partition is empty, increment the consecutive empty spaces
+        if(sharedControlMemoryPointer->partitions[i] == NULL){
+            consecutives++;
+
+            // if the consecutive empty spaces are equal to the size of the process, assign the process to the memory
+            if(consecutives == size){
+                sem_wait(sharedMemorySemaphore);
+                for(int j = start; j < start+size; j++){
+                    sharedControlMemoryPointer->partitions[j] = thread;
+                }
+                sem_post(sharedMemorySemaphore);
+                paintMemory();
+                return;
+            }
+        }
+        // if the partition is not empty, reset the consecutive empty spaces and start from the next partition
+        else{
+            consecutives = 0;
+            start = i + 1;
+        }
+    }
 }
 
 /*-----------------------------------------------------------------------
@@ -121,16 +171,16 @@ void bestFit(struct THREAD *thread) {
 }
 
 
-//----------------------------------------------------
-// Worst Fit Algorithm
-// Entries:
-//    void *arg: thread data
-//
-// Description:
-//    This function is in charge of allocating the thread in the memory using the worst fit algorithm.
-//    The worst fit algorithm assigns the thread to the partition with the most space available so that
-//    the thread can be allocated in the largest partition possible, leaving the smallest possible partitions.
-//----------------------------------------------------
+/*----------------------------------------------------
+Worst Fit Algorithm
+Entries:
+   void *arg: thread data
+
+Description:
+   This function is in charge of allocating the thread in the memory using the worst fit algorithm.
+   The worst fit algorithm assigns the thread to the partition with the most space available so that
+   the thread can be allocated in the largest partition possible, leaving the smallest possible partitions.
+----------------------------------------------------*/
 void worstFit(void *arg){
     struct THREAD *thread = (struct THREAD *)arg;
 
@@ -139,7 +189,7 @@ void worstFit(void *arg){
     int maxNum = 0;
     int maxNumIndex = 0;
     bool first = true;
-    bool empty = true;
+    // bool empty = true;
 
     // Iterate through the array of partitions
     for (int i = 0; i < sharedControlMemoryPointer->lines; i++) {
@@ -206,15 +256,15 @@ void registerProcess(void *arg){
 }
 
 
-// ----------------------------------------------------
-// Function: deallocateProcess
-// Entries:
-//    void *arg: thread data
-// Description:
-//    This function is in charge of deallocating the thread from the memory.
-//    It iterates through the array of partitions to find the thread and deallocate it.
-//    It sets the partition to NULL to indicate that it is empty.
-// ----------------------------------------------------
+/*----------------------------------------------------
+Function: deallocateProcess
+Entries:
+   void *arg: thread data
+Description:
+   This function is in charge of deallocating the thread from the memory.
+   It iterates through the array of partitions to find the thread and deallocate it.
+   It sets the partition to NULL to indicate that it is empty.
+----------------------------------------------------*/
 void deallocateProcess(void *arg) {
     struct THREAD *thread = (struct THREAD *)arg;
     sem_wait(sharedMemorySemaphore);  // Esperar por el semáforo antes de modificar la memoria compartida
@@ -228,15 +278,17 @@ void deallocateProcess(void *arg) {
         }
     }
     sem_post(sharedMemorySemaphore);  // Liberar el semáforo después de modificar
+    paintMemory();
+    createThread();
     free(thread);  // Liberar la memoria del hilo
-
-    return NULL;
 }   
 
 /*----------------------------------------------------
 Allocate the process in memory
 Entries:
     void *arg: thread data
+Description:
+    It uses the selected algorithm to allocate the thread in the memory.
 ----------------------------------------------------*/
 void *allocateProcess(void *arg) {
     
@@ -266,6 +318,11 @@ void *allocateProcess(void *arg) {
     return NULL;
 }
 
+/*----------------------------------------------------
+Function: createThread
+Description:
+   This function is in charge of creating a new thread for the process
+----------------------------------------------------*/
 void createThread() {
     struct THREAD *data = malloc(sizeof(struct THREAD));
     if (!data) {
@@ -296,8 +353,8 @@ void createThreads(int num_threads) {
 }
 
 void start() {
-    int dist = generateRandomNumber(30,60);
-    while(threadsQuantity < 50){
+    // int dist = generateRandomNumber(30,60);
+    while(threadsQuantity < 4){
         createThread();
         sleep(1);
         //sleep(dist);
@@ -358,6 +415,11 @@ int main() {
     
     //WHILE
     start();
+    
+    while (1)
+    {
+        /* code */
+    }
     
 
     // 3- Gererar random para la distribucion de procesos
