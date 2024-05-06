@@ -49,7 +49,7 @@ int generateRandomNumber(int min, int max) {
 void paintMemory(){
     for (int i = 0; i < sharedControlMemoryPointer->lines; i++) {
         if (sharedControlMemoryPointer->partitions[i] == NULL) {
-            printf("0 ");
+            printf("- ");
         } else {
             printf("%d ", sharedControlMemoryPointer->partitions[i]->pid);
         }
@@ -62,28 +62,53 @@ void firstFit(void *arg){
 
 }
 
-void bestFit(void *arg){
-    // //sharedControlMemoryPointer
-    // struct THREAD *thread = (struct THREAD *)arg;
-    // //asignar el proceso en el primer espacio vacio que sea mayor o igual al tamaño del proceso
-    // int i = 0;
-    // while(i < sharedControlMemoryPointer->lines){
-    //     printf("Buscando espacio en la particion %d\n", i);
-    //     if(sharedControlMemoryPointer->partitions[i] == NULL){
-    //         i++;
-    //     }else{
-    //         if(sharedControlMemoryPointer->partitions[i]->size >= thread->size){
-    //             sem_wait(sharedMemorySemaphore);
-    //             sharedControlMemoryPointer->partitions[i] = thread->pid;
-    //             //prints the threads info
-    //             sem_post(sharedMemorySemaphore);
-    //             printf("Thread %d with size %d and time %d started.\n", thread->pid, thread->size, thread->time);
-    //             break;
-    //         }
-    //         i++;
-    //     }
-    // }
+void bestFit(struct THREAD *thread) {
+    printf("Entering best Fit\n");
+    int bestEmptyLine = -1;  // Index of the best fit line start
+    int bestEmptyCounter = 100;  // Counter for the smallest adequate empty lines set
+    int currentEmptyLine = 0;  // Current counter of consecutive empty lines
+    int startEmptyLine = 0;    // Start index of the current empty line set
 
+    // Find the best fit iterating over the memory lines
+    for (int i = 0; i < sharedControlMemoryPointer->lines; i++) {
+        if (sharedControlMemoryPointer->partitions[i] == NULL) {
+            if (currentEmptyLine == 0) {
+                startEmptyLine = i;
+            }
+            currentEmptyLine++;
+        } else {
+            if (currentEmptyLine > thread->size && (i-currentEmptyLine+1) < bestEmptyCounter) {
+                bestEmptyLine = startEmptyLine;
+                bestEmptyCounter = currentEmptyLine;
+            }
+            currentEmptyLine = 0;  // Reset counter on encountering a filled partition
+        }
+    }
+
+    // Check the last sequence of empty lines
+    if (currentEmptyLine >= thread->size && currentEmptyLine < bestEmptyCounter) {
+        bestEmptyLine = startEmptyLine;
+        bestEmptyCounter = currentEmptyLine;
+    }
+    printf("Memory before:");
+    paintMemory();
+
+    // Assign the process if there is adequate space
+    if (bestEmptyLine == -1) {
+        printf("No hay espacio suficiente para el proceso %ld\n", (long)thread->pid);
+    } else {
+        printf("Espacio asignado para el proceso %ld en la línea %d\n", (long)thread->pid, bestEmptyLine);
+        //process info
+        printf("Thread %d with size %d and time %d started.\n", thread->pid, thread->size, thread->time);
+        
+        sem_wait(sharedMemorySemaphore);  // Ensure exclusive access to memory
+        for (int i = bestEmptyLine; i < bestEmptyLine + thread->size; i++) {
+            sharedControlMemoryPointer->partitions[i] = thread;
+        }
+        sem_post(sharedMemorySemaphore);
+
+        paintMemory();
+    }
 }
 
 
@@ -187,10 +212,10 @@ void deallocateProcess(void *arg) {
 
     // Iterate through the array of partition to find the thread and deallocate it
     for (int i = 0; i < sharedControlMemoryPointer->lines; i++) {
-        printf("Partition %d\n", i);
+        //printf("Partition %d\n", i);
         if (sharedControlMemoryPointer->partitions[i] != NULL && sharedControlMemoryPointer->partitions[i]->pid == thread->pid) {
             sharedControlMemoryPointer->partitions[i] = NULL;
-            printf("Thread %d deallocated from partition %d\n", thread->pid, i);
+            //printf("Thread %d deallocated from partition %d\n", thread->pid, i);
         }
     }
     sem_post(sharedMemorySemaphore);  // Liberar el semáforo después de modificar
@@ -212,11 +237,11 @@ void *allocateProcess(void *arg) {
     if(algorithm == 0){
         firstFit(thread);
     }else if(algorithm == 1){
-        printf("Best Fit\n");
         bestFit(thread);
     }else{
         worstFit(thread);
     }
+    sleep(thread->time);  
 
     // sem_wait(sharedMemorySemaphore);  // Esperar por el semáforo antes de modificar la memoria compartida
 
@@ -248,7 +273,8 @@ void createThread() {
         fprintf(stderr, "Failed to create thread\n");
         free(data);
     } else {
-        pthread_join(thread, NULL);
+        //pthread_join(thread, NULL);
+        pthread_detach(thread);
         ++threadsQuantity;
     }
 }
@@ -264,6 +290,7 @@ void start() {
     int dist = generateRandomNumber(30,60);
     while(threadsQuantity < 50){
         createThread();
+        sleep(1);
         //sleep(dist);
     }
 }
@@ -296,6 +323,7 @@ int main() {
 
     //1-ask for the algorithm
     algorithm = printAlgorithmMenu();
+    printf("Algorithm: %d\n", algorithm);
 
     srand(time(NULL));
     //2- Memory 
@@ -320,32 +348,7 @@ int main() {
 
     
     //WHILE
-    // start();
-
-    // Test #1 worst fit: Allocate process when there's a process in the middle
-    struct THREAD *thread = malloc(sizeof(struct THREAD));
-    thread->size = 3;
-    thread->time = 5;
-    thread->pid = 1;
-    worstFit(thread);
-    paintMemory();
-
-    struct THREAD *thread2 = malloc(sizeof(struct THREAD));
-    thread2->size = 4;
-    thread2->time = 5;
-    thread2->pid = 2;
-    worstFit(thread2);
-    paintMemory();
-
-    deallocateProcess(thread);
-    paintMemory();
-
-    struct THREAD *thread3 = malloc(sizeof(struct THREAD));
-    thread3->size = 3;
-    thread3->time = 5;
-    thread3->pid = 3;
-    worstFit(thread3);
-    paintMemory();
+    start();
     
 
     // 3- Gererar random para la distribucion de procesos
@@ -365,3 +368,4 @@ int main() {
 
     return 0;
 }
+
