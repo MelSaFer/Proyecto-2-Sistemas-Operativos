@@ -114,6 +114,10 @@ void firstFit(void *arg){
 
 /*-----------------------------------------------------------------------
 Best Fit Algorithm
+Description:
+    This function is in charge of allocating the thread in the memory using 
+    the best fit algorithm.The best fit algorithm assigns the thread to the 
+    partition with the smallest space available that fits the thread.
 Entries:
     void *arg: thread data
 Output:
@@ -135,7 +139,7 @@ void bestFit(struct THREAD *thread) {
             }
             currentEmptyLine++;
         } else {
-            if (currentEmptyLine > thread->size && (i-currentEmptyLine+1) < bestEmptyCounter) {
+            if (currentEmptyLine >= thread->size && currentEmptyLine < bestEmptyCounter) {
                 bestEmptyLine = startEmptyLine;
                 bestEmptyCounter = currentEmptyLine;
             }
@@ -143,7 +147,7 @@ void bestFit(struct THREAD *thread) {
         }
     }
 
-    // Check the last sequence of empty lines
+    // Check the last sequence of empty lines because it could be the best fit
     if (currentEmptyLine >= thread->size && currentEmptyLine < bestEmptyCounter) {
         bestEmptyLine = startEmptyLine;
         bestEmptyCounter = currentEmptyLine;
@@ -258,16 +262,18 @@ void registerProcess(void *arg){
 
 /*----------------------------------------------------
 Function: deallocateProcess
-Entries:
-   void *arg: thread data
 Description:
    This function is in charge of deallocating the thread from the memory.
    It iterates through the array of partitions to find the thread and deallocate it.
-   It sets the partition to NULL to indicate that it is empty.
+   It sets the partition to NULL to indicate that it is empty
+Entries:
+   void *arg: thread data
+Output:
+   void
 ----------------------------------------------------*/
 void deallocateProcess(void *arg) {
     struct THREAD *thread = (struct THREAD *)arg;
-    sem_wait(sharedMemorySemaphore);  // Esperar por el semáforo antes de modificar la memoria compartida
+    sem_wait(sharedMemorySemaphore);  // wait for the semaphore
 
     // Iterate through the array of partition to find the thread and deallocate it
     for (int i = 0; i < sharedControlMemoryPointer->lines; i++) {
@@ -277,10 +283,10 @@ void deallocateProcess(void *arg) {
             //printf("Thread %d deallocated from partition %d\n", thread->pid, i);
         }
     }
-    sem_post(sharedMemorySemaphore);  // Liberar el semáforo después de modificar
+    sem_post(sharedMemorySemaphore);  // free the semaphore
     paintMemory();
     createThread();
-    free(thread);  // Liberar la memoria del hilo
+    free(thread);  // Free the memory allocated for the thread
 }   
 
 /*----------------------------------------------------
@@ -293,8 +299,7 @@ Description:
 void *allocateProcess(void *arg) {
     
     struct THREAD *thread = (struct THREAD *)arg;
-    //Pirnt the thread info
-    printf("Thread %d with size %d and time %d started.\n", thread->pid, thread->size, thread->time);
+
     if(algorithm == 0){
         firstFit(thread);
     }else if(algorithm == 1){
@@ -303,15 +308,6 @@ void *allocateProcess(void *arg) {
         worstFit(thread);
     }
     sleep(thread->time);  
-
-    // sem_wait(sharedMemorySemaphore);  // Esperar por el semáforo antes de modificar la memoria compartida
-
-    // // Lógica de asignación de memoria aquí
-    // printf("Thread %d with size %d and time %d started.\n", thread->pid, thread->size, thread->time);
-
-    // sem_post(sharedMemorySemaphore);  // Liberar el semáforo después de modificar
-    // sleep(thread->time);  // Simular el tiempo de ejecución
-
     //Calls dellocate
     deallocateProcess(thread);
     
@@ -345,13 +341,23 @@ void createThread() {
     }
 }
 
-//
-void createThreads(int num_threads) {
-    for (int i = 0; i < num_threads; i++) {
-        createThread();
-    }
-}
+// //
+// void createThreads(int num_threads) {
+//     for (int i = 0; i < num_threads; i++) {
+//         createThread();
+//     }
+// }
 
+/*----------------------------------------------------------------------------
+Function: start
+Description:
+   This function is in charge of starting the process of creating threads
+Entries:
+   void
+Output:
+    void
+--------------------------------------------------------------------------------
+*/
 void start() {
     // int dist = generateRandomNumber(30,60);
     while(threadsQuantity < 4){
@@ -385,15 +391,12 @@ int printAlgorithmMenu() {
     return choice-1;
 }
 
-int main() {
+/*----------------------------------------------------
+Funtion for access to shared memory
 
-    //1-ask for the algorithm
-    algorithm = printAlgorithmMenu();
-    printf("Algorithm: %d\n", algorithm);
 
-    srand(time(NULL));
-    //2- Memory 
-    //Accesing shared memory
+*/
+void accessSharedMemory(){
     key_t key = ftok(SHARED_MEMORY, SHARED_MEMORY_ID);
     int shm_id = shmget(key, sizeof(struct SHAREDMEM), 0666);
     sharedControlMemoryPointer = (struct SHAREDMEM*) shmat(shm_id, NULL, 0);
@@ -402,8 +405,6 @@ int main() {
         perror("shmat failed");
         exit(EXIT_FAILURE);
     }
-    //CantLineas en memoria
-    //printf("Cantidad de lineas en memoria: %d\n", sharedControlMemoryPointer->lines);
 
     // Open the semaphore
     sharedMemorySemaphore = sem_open("sharedMemorySemaphore", 0);
@@ -411,29 +412,23 @@ int main() {
         perror("sem_open failed");
         exit(EXIT_FAILURE);
     }
+}
 
+int main() {
+
+    algorithm = printAlgorithmMenu();
+
+    srand(time(NULL));
     
-    //WHILE
+    accessSharedMemory();
+
     start();
     
     while (1)
     {
         /* code */
     }
-    
 
-    // 3- Gererar random para la distribucion de procesos
-    // 4- Creamos thread 
-    // 5- Asignamos memoria (allocation algorithm)
-
-    //---------------------------
-    
-    // int num_threads = 5;  // Suponiendo que queremos crear 5 hilos
-    // for (int i = 0; i < num_threads; i++) {
-    //     createThread();
-    // }
-
-    
     sem_close(sharedMemorySemaphore);
     shmdt(sharedControlMemoryPointer);
 
