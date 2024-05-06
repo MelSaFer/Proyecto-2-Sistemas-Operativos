@@ -62,10 +62,18 @@ void firstFit(void *arg){
 
 }
 
+/*-----------------------------------------------------------------------
+Best Fit Algorithm
+Entries:
+    void *arg: thread data
+Output:
+    void
+-------------------------------------------------------------------------
+*/
 void bestFit(struct THREAD *thread) {
     printf("Entering best Fit\n");
     int bestEmptyLine = -1;  // Index of the best fit line start
-    int bestEmptyCounter = 100;  // Counter for the smallest adequate empty lines set
+    int bestEmptyCounter = 100;  // Counter for the smallest empty line set found
     int currentEmptyLine = 0;  // Current counter of consecutive empty lines
     int startEmptyLine = 0;    // Start index of the current empty line set
 
@@ -81,7 +89,7 @@ void bestFit(struct THREAD *thread) {
                 bestEmptyLine = startEmptyLine;
                 bestEmptyCounter = currentEmptyLine;
             }
-            currentEmptyLine = 0;  // Reset counter on encountering a filled partition
+            currentEmptyLine = 0;
         }
     }
 
@@ -90,10 +98,11 @@ void bestFit(struct THREAD *thread) {
         bestEmptyLine = startEmptyLine;
         bestEmptyCounter = currentEmptyLine;
     }
+
     printf("Memory before:");
     paintMemory();
 
-    // Assign the process if there is adequate space
+    // Assign the process it there is enough space
     if (bestEmptyLine == -1) {
         printf("No hay espacio suficiente para el proceso %ld\n", (long)thread->pid);
     } else {
