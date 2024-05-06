@@ -48,7 +48,53 @@ void bestFit(void *arg){
 }
 
 void worstFit(void *arg){
+    struct THREAD *thread = (struct THREAD *)arg;
 
+    int startIndex = 0;
+    int counter = 0;
+    int maxNum = 0;
+    int maxNumIndex = 0;
+    bool first = true;
+
+    // Iterate through the array of partitions
+    for (int i = 0; i < sharedControlMemoryPointer->lines; i++) {
+        // If the partition is emtpy
+        if (sharedControlMemoryPointer->partitions[i] == NULL) {
+            // Start counting the empty lines
+            if (first) {
+                startIndex = i;
+                first = false;
+            }
+            counter++;
+
+        } else {
+            // Calculates the space left in the partition
+            if (counter > maxNum) {
+                maxNum = counter;
+                maxNumIndex = startIndex;
+            }
+            counter = 0;
+            first = true;
+        }
+
+    }
+
+    // If the maxNum is less than the size of the thread, then the thread can't be allocated
+    // and the function returns
+    if (maxNum < thread->size) {
+        return;
+    }
+
+    // semaphore wait
+    sem_wait(sharedMemorySemaphore);
+    // Allocate the thread in the each partition
+    int end = maxNumIndex + thread->size;
+    for (int i = maxNumIndex; i < end; i++) {
+        // Assign the thread to the partition
+        sharedControlMemoryPointer->partitions[i] = thread;
+    }
+    // semaphore post
+    sem_post(sharedMemorySemaphore);    
 }
 
 //----------------------------------------------------
