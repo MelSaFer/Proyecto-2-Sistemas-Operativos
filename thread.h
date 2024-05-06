@@ -20,7 +20,7 @@ enum ActionType {
     };
 
 struct THREAD{
-    pthread_t pid;
+    int pid;
     int size;
     int time;
     enum State state;
