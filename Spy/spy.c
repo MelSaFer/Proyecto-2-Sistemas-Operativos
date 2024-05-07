@@ -44,7 +44,8 @@ void paintMemory(){
         if (sharedControlMemorySpy->partitions[i] == NULL) {
             printf("- ");
         } else {
-            printf("%d ", sharedControlMemorySpy->partitions[i]->pid);
+            printf("%d ", sharedControlMemorySpy->partitions[i]);
+            //printf("%d ", sharedControlMemorySpy->partitions[i]->pid);
         }
     }
     printf("\n");
