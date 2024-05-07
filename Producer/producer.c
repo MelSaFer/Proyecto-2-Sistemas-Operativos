@@ -124,8 +124,9 @@ Output:
     void
 -------------------------------------------------------------------------
 */
-void bestFit(struct THREAD *thread) {
-    printf("Entering best Fit\n");
+void bestFit(void *arg){
+    struct THREAD *thread = (struct THREAD *)arg;
+    
     int bestEmptyLine = -1;  // Index of the best fit line start
     int bestEmptyCounter = 100;  // Counter for the smallest empty line set found
     int currentEmptyLine = 0;  // Current counter of consecutive empty lines
@@ -153,8 +154,8 @@ void bestFit(struct THREAD *thread) {
         bestEmptyCounter = currentEmptyLine;
     }
 
-    printf("Memory before:");
-    paintMemory();
+    //printf("Memory before:");
+    //paintMemory();
 
     // Assign the process it there is enough space
     if (bestEmptyLine == -1) {
@@ -162,7 +163,7 @@ void bestFit(struct THREAD *thread) {
     } else {
         printf("Espacio asignado para el proceso %ld en la línea %d\n", (long)thread->pid, bestEmptyLine);
         //process info
-        printf("Thread %d with size %d and time %d started.\n", thread->pid, thread->size, thread->time);
+        printf(" Thread %d with size %d and time %d started.\n", thread->pid, thread->size, thread->time);
         
         sem_wait(sharedMemorySemaphore);  // Ensure exclusive access to memory
         for (int i = bestEmptyLine; i < bestEmptyLine + thread->size; i++) {
