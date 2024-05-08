@@ -19,10 +19,10 @@ Estudiantes:
 #include <sys/ipc.h>
 #include <sys/shm.h>
 #include <stdbool.h>
-#include "../sharedMem.h"
-#include "../thread.h"
+#include "../include/sharedMem.h"
+#include "../include/thread.h"
 
-#define SHARED_MEMORY "shared_mem"
+#define SHARED_MEMORY "files/shared_mem"
 #define SHARED_MEMORY_ID 1
 
 
@@ -41,11 +41,11 @@ void paintMemory(){
     printf("Spy: %d\n", sharedControlMemorySpy->lines);
     
     for (int i = 0; i < sharedControlMemorySpy->lines; i++) {
-        if (sharedControlMemorySpy->partitions[i] == NULL) {
+        if (sharedControlMemorySpy->partitions[i].pid == -1) {
             printf("- ");
         } else {
-            printf("%d ", sharedControlMemorySpy->partitions[i]);
-            //printf("%d ", sharedControlMemorySpy->partitions[i]->pid);
+            //printf("%d ", sharedControlMemorySpy->partitions[i]);
+            printf("%d ", sharedControlMemorySpy->partitions[i].pid);
         }
     }
     printf("\n");

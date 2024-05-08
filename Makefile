@@ -11,16 +11,16 @@ EXECUTABLES = starter_ finisher_ producer_ spy_
 all: $(EXECUTABLES)
 
 # Reglas para compilar cada ejecutable
-starter_: starter/starter.c thread.h mempartition.h sharedMem.h
+starter_: starter/starter.c include/thread.h include/mempartition.h include/sharedMem.h
 	gcc $(CFLAGS) -o starter_ starter/starter.c $(LIBS)
 
 finisher_: finisher/finisher.c
 	gcc $(CFLAGS) -o finisher_ finisher/finisher.c $(LIBS)
 
-producer_: producer/producer.c thread.h mempartition.h sharedMem.h
+producer_: producer/producer.c include/thread.h include/mempartition.h include/sharedMem.h
 	gcc $(CFLAGS) -o producer_ producer/producer.c $(LIBS)
 
-spy_: spy/spy.c thread.h mempartition.h sharedMem.h
+spy_: spy/spy.c include/thread.h include/mempartition.h include/sharedMem.h
 	gcc $(CFLAGS) -o spy_ spy/spy.c $(LIBS)
 
 # Regla para limpiar archivos objeto y ejecutables

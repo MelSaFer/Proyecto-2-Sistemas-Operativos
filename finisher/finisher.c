@@ -46,8 +46,8 @@ int finishEnvironment(key_t processSharedMemoryKey, key_t controlSharedMemory) {
 }
 
 int getKeys() {
-    const char *path1 = "process_mem";
-    const char *path2 = "shared_mem";
+    const char *path1 = "files/process_mem";
+    const char *path2 = "files/shared_mem";
     int id1 = 1, id2 = 1; 
 
     key_t processSharedMemoryKey = ftok(path1, id1);

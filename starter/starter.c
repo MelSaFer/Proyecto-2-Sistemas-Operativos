@@ -18,14 +18,14 @@ Estudiantes:
 #include <semaphore.h>
 #include <fcntl.h>
 #include <errno.h>
-#include "../sharedMem.h"
-#include "../thread.h"
+#include "../include/sharedMem.h"
+#include "../include/thread.h"
 
 
-#define PROCESS_SHARED_MEMORY "process_mem"
+#define PROCESS_SHARED_MEMORY "files/process_mem"
 #define PROCESS_SHARED_MEMORY_ID 1
 
-#define SHARED_MEMORY "shared_mem"
+#define SHARED_MEMORY "files/shared_mem"
 #define SHARED_MEMORY_ID 1
 
 // Shared Memory Ids for the process
@@ -39,7 +39,7 @@ struct SHAREDMEM* sharedMemory;
 
 sem_t *sharedMemorySemaphore, *logsSemaphore;
 
-//start Environment function
+// Start Environment function
 int startEnvironment(int lines) {
 
     const char *filepath = SHARED_MEMORY;
@@ -91,7 +91,7 @@ int startEnvironment(int lines) {
         perror("Error creating the key for the control shared memory");
         exit(1);
     }
-    printf("\control shared memory key: %d\n", controlSharedMemoryKey);
+    printf("\nControl shared memory key: %d\n", controlSharedMemoryKey);
 
     // Create the shared memory for the memory
     controlSharedMemoryId = shmget(controlSharedMemoryKey, sizeof(struct SHAREDMEM), 0666 | IPC_CREAT | IPC_EXCL);
@@ -106,8 +106,6 @@ int startEnvironment(int lines) {
                 perror("Error getting the shared memory:/)");
                 exit(1);
             }
-            
-
             printf("\nExisting shared memory segment with id %d opened\n", controlSharedMemoryId);
         } else {
             perror("Error creating the shared memory");
@@ -129,7 +127,7 @@ int startEnvironment(int lines) {
     // Set initial values to control structure of shared control memory
     sharedMemory->lines = lines;
     for (int i = 0; i < lines; i++) {
-        sharedMemory->partitions[i] = NULL;
+        sharedMemory->partitions[i].pid = -1;
     }
 
     // Close shared control memory
