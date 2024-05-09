@@ -30,33 +30,93 @@ struct SHAREDMEM* sharedControlMemorySpy;
 sem_t *sharedMemorySemaphore;
 
 
+
+/*----------------------------------------------------
+This function is in charge of returning the name of the state of a thread.
+Entries:
+    enum State state -> the state of the thread
+Output:
+    const char* -> the name of the state of the thread
+*/
+const char* getStateName(enum State state) {
+    switch (state) {
+        case BLOCKED: return "BLOCKED";
+        case RUNNING: return "RUNNING";
+        case FINISHED: return "FINISHED";
+        case DEAD: return "DEAD";
+        default: return "UNKNOWN";  // En caso de que se agregue otro estado y no se actualice esta función
+    }
+}
 /*----------------------------------------------------
 Function: paintMemory
 Description:
    This function is in charge of printing the memory partitions and the threads assigned to each partition.
    For debugging purposes at the moment.
    If a partition is empty, it prints a -, otherwise it prints the thread ID.
+Entries:
+    None
+Output:
+    void
 ----------------------------------------------------*/
 void paintMemory(){
-    printf("Spy: %d\n", sharedControlMemorySpy->lines);
+    system("clear");
+    printf("Estado de la memoria:\n");
+    printf("+--------------------------------+\n");
     
     for (int i = 0; i < sharedControlMemorySpy->lines; i++) {
         if (sharedControlMemorySpy->partitions[i].pid == -1) {
-            printf("- ");
+            printf("| %-30s |\n", "-");  
         } else {
-            //printf("%d ", sharedControlMemorySpy->partitions[i]);
-            printf("%d ", sharedControlMemorySpy->partitions[i].pid);
+            printf("| %-30d |\n", sharedControlMemorySpy->partitions[i].pid);  
         }
-    }
+        printf("+--------------------------------+\n");
+    } 
     printf("\n");
+    
 }
 
 
 /*----------------------------------------------------
+Prints the statistics of the threads
+Entries:
+    None
+Output:
+    void
+-----------------------------------------------------*/
+void printInfoProcess() {
+    system("clear");
+    int lastThreadId = -1;	
+
+    printf("Información de los Procesos:\n");
+    printf("+-----+------+-------+-------------+\n");
+    printf("| PID | Size | Time  | State       |\n");
+    printf("+-----+------+-------+-------------+\n");
+
+    for (int i = 0; i < sharedControlMemorySpy->lines; i++) {
+        
+        if(lastThreadId == sharedControlMemorySpy->partitions[i].pid){
+            continue;
+        } else if(sharedControlMemorySpy->partitions[i].pid == -1){
+            continue;
+        }
+        lastThreadId = sharedControlMemorySpy->partitions[i].pid;
+        printf("| %-3d | %-4d | %-5d | %-11s |\n",
+                sharedControlMemorySpy->partitions[i].pid,
+                sharedControlMemorySpy->partitions[i].size,
+                sharedControlMemorySpy->partitions[i].time,
+                //sharedControlMemorySpy->partitions[i].state);
+                getStateName(sharedControlMemorySpy->partitions[i].state));
+        printf("+-----+------+-------+-------------+\n");
+    }
+}
+
+/*----------------------------------------------------
 Funtion for access to shared memory
-
-
-*/
+Entries:
+    None
+Output:
+    void
+----------------------------------------------------*/
 void accessSharedMemory(){
     key_t key = ftok(SHARED_MEMORY, SHARED_MEMORY_ID);
     int shm_id = shmget(key, sizeof(struct SHAREDMEM), 0666);
@@ -77,15 +137,56 @@ void accessSharedMemory(){
     printf("Spy: %d\n", sharedControlMemorySpy->lines);
 }
 
+/*----------------------------------------------------
+Funtion for print the menu of the spy
+Entries:
+    None
+Output:
+    int choice -> the option selected by the user
+----------------------------------------------------*/
+int printSpyMenu() {
+    int choice;
 
-//main function
+    printf("\n+----------------------------------------------------+\n");
+    printf("|         Sistema de Información de Procesos         |\n");
+    printf("+----------------------------------------------------+\n");
+    printf("| 1. Ver estado actual de la memoria                 |\n");
+    printf("| 2. Ver estado de los procesos                      |\n");
+    printf("+----------------------------------------------------+\n");
+    printf("Seleccione una opción (1-2): ");
+
+    scanf("%d", &choice);
+
+    while (choice < 1 || choice > 2) {
+        printf("Entrada inválida. Por favor, seleccione una opción válida (1-5): ");
+        scanf("%d", &choice);
+    }
+
+    return choice;
+}
+
+
+/*----------------------------------------------------
+Main function
+Entries:
+    None
+Output:
+    int -> 0
+----------------------------------------------------*/
 int main(){
     accessSharedMemory();
     while (true) {
-        sem_wait(sharedMemorySemaphore);
-        paintMemory();
-        sem_post(sharedMemorySemaphore);
-        sleep(1);
+        int choice = printSpyMenu();
+
+        if (choice == 1) {
+            sem_wait(sharedMemorySemaphore);
+            paintMemory();
+            sem_post(sharedMemorySemaphore);
+        } else if (choice == 2) {
+            sem_wait(sharedMemorySemaphore);
+            printInfoProcess();
+            sem_post(sharedMemorySemaphore);
+        }
     }
    return 0; 
 }
