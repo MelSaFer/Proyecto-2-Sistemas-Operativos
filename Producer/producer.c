@@ -19,19 +19,13 @@ Estudiantes:
 #include <sys/ipc.h>
 #include <sys/shm.h>
 #include <stdbool.h>
+#include <time.h>
+#include <poll.h>
 #include "../include/sharedMem.h"
 #include "../include/thread.h"
+#include "../include/mainThread.h"
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <pthread.h>
-#include <semaphore.h>
-#include <time.h>
-#include <stdbool.h>
-#include <sys/ipc.h>
-#include <sys/shm.h>
-
+#define MIN_DISTRIBUTION 30
 #define MIN_TIME 20
 #define MAX_TIME 60
 #define MIN_SIZE 1
@@ -39,17 +33,6 @@ Estudiantes:
 #define MAX_LINES 100
 #define SHARED_MEMORY "files/shared_mem"
 #define SHARED_MEMORY_ID 1
-
-// struct THREAD {
-//     int pid;
-//     int size;
-//     int time;
-// };
-
-// struct SHAREDMEM {
-//     int lines;
-//     struct THREAD partitions[MAX_LINES];
-// };
 
 struct SHAREDMEM *sharedControlMemoryPointer;
 FILE *file;
@@ -60,21 +43,41 @@ int threadsQuantity = 0;
 int algorithm = 0;
 
 // Function prototypes
-void createThread();
 int generateRandomNumber(int min, int max);
 void paintMemory();
 bool firstFit(void *arg);
 bool bestFit(void *arg);
 bool worstFit(void *arg);
+void registerProcess(void *arg, int action);
+void *allocateMainProcess(void *arg);
 void *allocateProcess(void *arg);
 void deallocateProcess(void *arg);
+void createThread();
+void createMainThread();
 void accessSharedMemory();
 int printAlgorithmMenu();
+void start();
 
+/*----------------------------------------------------
+Function: generateRandomNumber
+Entries:
+   int min: minimum value of the random number
+   int max: maximum value of the random number
+Description:
+   This function generates a random number between the minimum and maximum values provided.
+   It uses the rand() function from the standard library to generate the random number.
+----------------------------------------------------*/
 int generateRandomNumber(int min, int max) {
     return min + rand() % (max - min + 1);
 }
 
+/*----------------------------------------------------
+Function: paintMemory
+Description:
+   This function is in charge of printing the memory partitions and the threads assigned to each partition.
+   For debugging purposes at the moment.
+   If a partition is empty, it prints a -, otherwise it prints the thread ID.
+----------------------------------------------------*/
 void paintMemory() {
     for (int i = 0; i < sharedControlMemoryPointer->lines; i++) {
         if (sharedControlMemoryPointer->partitions[i].pid == -1) {
@@ -86,6 +89,16 @@ void paintMemory() {
     printf("\n");
 }
 
+//ALGORITMS OF MEMORY ASSIGNATION 
+
+/*----------------------------------------------------
+First Fit Algorithm
+Entries:
+    void *arg: thread data
+Description:
+    This function is in charge of allocating the thread in the memory using the first fit algorithm.
+    The first fit algorithm assigns the thread to the first partition that has enough space to allocate it.
+----------------------------------------------------*/
 bool firstFit(void *arg) {
     struct THREAD *thread = (struct THREAD *)arg;
 
@@ -114,6 +127,17 @@ bool firstFit(void *arg) {
     return false;
 }
 
+/*-----------------------------------------------------------------------
+Best Fit Algorithm
+Description:
+    This function is in charge of allocating the thread in the memory using 
+    the best fit algorithm.The best fit algorithm assigns the thread to the 
+    partition with the smallest space available that fits the thread.
+Entries:
+    void *arg: thread data
+Output:
+    void
+-------------------------------------------------------------------------*/
 bool bestFit(void *arg) {
     struct THREAD *thread = (struct THREAD *)arg;
     
@@ -157,6 +181,16 @@ bool bestFit(void *arg) {
     return true;
 }
 
+/*----------------------------------------------------
+Worst Fit Algorithm
+Entries:
+   void *arg: thread data
+
+Description:
+   This function is in charge of allocating the thread in the memory using the worst fit algorithm.
+   The worst fit algorithm assigns the thread to the partition with the most space available so that
+   the thread can be allocated in the largest partition possible, leaving the smallest possible partitions.
+----------------------------------------------------*/
 bool worstFit(void *arg) {
     struct THREAD *thread = (struct THREAD *)arg;
 
@@ -202,19 +236,25 @@ bool worstFit(void *arg) {
     return true;
 }
 
-//----------------------------------------------------
-// Function: registerProcess
-// Description:
-//    This function is in charge of registering the thread in the log file
-//    It writes the thread data to the log file
-// Entries:
-//    void *arg: thread data
-// Output:
-//    void
-//----------------------------------------------------
+/*----------------------------------------------------
+Function: registerProcess
+Description:
+   This function is in charge of registering the thread in the log file
+   It writes the thread data to the log file
+Entries:
+   void *arg: thread data
+Output:
+   void
+----------------------------------------------------*/
 void registerProcess(void *arg, int action){
     struct THREAD *thread = (struct THREAD *)arg;
-    printf("Registering process %d\n", thread->pid);
+    if(action == 0){
+        printf("Registering process %d with time %d\n", thread->pid, thread->time);
+    }
+    else{
+        printf("Ending process %d\n", thread->pid);
+    }
+    
 
     sem_wait(logsSemaphore);  // wait
     if(action == 0){
@@ -229,6 +269,31 @@ void registerProcess(void *arg, int action){
     sem_post(logsSemaphore);  // free
 }
 
+void *allocateMainProcess(void *arg) {
+
+    struct MAIN_THREAD *thread = (struct MAIN_THREAD *)arg;
+    printf("Distribution: %d\n", thread->distribution);
+
+    while (1) {
+
+
+        createThread();
+        sleep(thread->distribution);
+        
+    }
+
+    return NULL;
+}
+
+/*----------------------------------------------------
+Function: allocateProcess
+Description:
+    Allocate the process in memory
+Entries:
+    void *arg: thread data
+Description:
+    It uses the selected algorithm to allocate the thread in the memory.
+----------------------------------------------------*/
 void *allocateProcess(void *arg) {
     bool allocated = false;
     struct THREAD *thread = (struct THREAD *)arg;
@@ -256,6 +321,17 @@ void *allocateProcess(void *arg) {
     return NULL;
 }
 
+/*----------------------------------------------------
+Function: deallocateProcess
+Description:
+   This function is in charge of deallocating the thread from the memory.
+   It iterates through the array of partitions to find the thread and deallocate it.
+   It sets the partition to NULL to indicate that it is empty
+Entries:
+   void *arg: thread data
+Output:
+   void
+----------------------------------------------------*/
 void deallocateProcess(void *arg) {
     struct THREAD *thread = (struct THREAD *)arg;
     sem_wait(sharedMemorySemaphore);
@@ -266,10 +342,15 @@ void deallocateProcess(void *arg) {
     }
     sem_post(sharedMemorySemaphore);
     paintMemory();
-    createThread();
+    // createThread();
     free(thread);
 }
 
+/*----------------------------------------------------
+Function: createThread
+Description:
+   This function is in charge of creating a new thread for the process
+----------------------------------------------------*/
 void createThread() {
     struct THREAD *data = malloc(sizeof(struct THREAD));
     if (!data) {
@@ -291,6 +372,34 @@ void createThread() {
     }
 }
 
+/*----------------------------------------------------
+Function: createMainThread
+Description:
+   This function is in charge of creating the main thread that generates the processes
+----------------------------------------------------*/
+void createMainThread() {
+    struct MAIN_THREAD *data = malloc(sizeof(struct MAIN_THREAD));
+    if (!data) {
+        fprintf(stderr, "Failed to allocate memory for thread data\n");
+        return;
+    }
+
+    data->distribution = generateRandomNumber(MIN_DISTRIBUTION, MAX_TIME);
+
+    pthread_t thread;
+    if (pthread_create(&thread, NULL, allocateMainProcess, (void *)data) != 0) {
+        fprintf(stderr, "Failed to create main thread\n");
+    } else {
+        pthread_detach(thread);
+    }
+}
+
+/*----------------------------------------------------
+Function: accessSharedMemory
+Description:
+   This function is in charge of accessing the shared memory and the semaphores
+   It opens the shared memory and the semaphores to be used by the producer
+----------------------------------------------------*/
 void accessSharedMemory() {
     key_t key = ftok(SHARED_MEMORY, SHARED_MEMORY_ID);
     int shm_id = shmget(key, sizeof(struct SHAREDMEM), 0666);
@@ -321,6 +430,14 @@ void accessSharedMemory() {
     }
 }
 
+/*----------------------------------------------------
+Function: printAlgorithmMenu
+Description:
+   This function prints the menu to select the memory allocation algorithm
+   It reads the user input and returns the selected algorithm
+Output:
+    int: selected algorithm
+----------------------------------------------------*/
 int printAlgorithmMenu() {
     int choice;
 
@@ -344,20 +461,57 @@ int printAlgorithmMenu() {
     return choice - 1;
 }
 
-void start() {
-    while (threadsQuantity < 4) {
-        createThread();
-        sleep(1);
+void freeMemory() {
+    sem_wait(sharedMemorySemaphore);
+    for (int i = 0; i < sharedControlMemoryPointer->lines; i++) {
+        sharedControlMemoryPointer->partitions[i].pid = -1;
     }
+    sem_post(sharedMemorySemaphore);
+
+    sem_close(sharedMemorySemaphore);
+    sem_close(logsSemaphore);
+    fclose(file);
+}
+
+/*----------------------------------------------------
+Function: start
+Description:
+    This function is in charge of starting the main thread and waiting for the user to press a key to stop the program
+    It creates the main thread and waits for the user to press a key to stop the program
+----------------------------------------------------*/
+void start() {
+    createMainThread();
+
+    printf("Presiona Enter para detener la creación de hilos:\n");
+
+    struct pollfd stdin_fd;
+    stdin_fd.fd = STDIN_FILENO;
+    stdin_fd.events = POLLIN;
+
+    while (1) {
+        int ret = poll(&stdin_fd, 1, 0);
+        if (ret == -1) {
+            perror("poll");
+            exit(EXIT_FAILURE);
+        } else if (ret > 0) {
+            if (stdin_fd.revents & POLLIN) {
+                // key pressed - exit
+                break;
+            }
+        }
+    }
+
+    freeMemory();
+    printf("Se ha presionado Enter. Saliendo...\n");
+
 }
 
 int main() {
     algorithm = printAlgorithmMenu();
+    system("clear");
     srand(time(NULL));
     accessSharedMemory();
     start();
-    
-    while (1) {}
 
     sem_close(sharedMemorySemaphore);
     shmdt(sharedControlMemoryPointer);

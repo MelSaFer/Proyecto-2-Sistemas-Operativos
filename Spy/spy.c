@@ -152,13 +152,14 @@ int printSpyMenu() {
     printf("+----------------------------------------------------+\n");
     printf("| 1. Ver estado actual de la memoria                 |\n");
     printf("| 2. Ver estado de los procesos                      |\n");
+    printf("| 3. Salir                                           |\n");
     printf("+----------------------------------------------------+\n");
-    printf("Seleccione una opción (1-2): ");
+    printf("Seleccione una opción (1-3): ");
 
     scanf("%d", &choice);
 
-    while (choice < 1 || choice > 2) {
-        printf("Entrada inválida. Por favor, seleccione una opción válida (1-5): ");
+    while (choice < 1 || choice > 3) {
+        printf("Entrada inválida. Por favor, seleccione una opción válida (1-3): ");
         scanf("%d", &choice);
     }
 
@@ -186,6 +187,9 @@ int main(){
             sem_wait(sharedMemorySemaphore);
             printInfoProcess();
             sem_post(sharedMemorySemaphore);
+        }
+        else if (choice == 3) {
+            break;
         }
     }
    return 0; 
