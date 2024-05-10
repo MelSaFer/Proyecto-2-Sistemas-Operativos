@@ -16,3 +16,4 @@ Process 6 with size 3 and time 57 finished succesfully.
 Process 8 with size 4 and time 40 started running.
 Process 7 with size 1 and time 52 finished succesfully.
 Process 9 with size 4 and time 54 started running.
+si
