@@ -22,6 +22,16 @@ Estudiantes:
 #include "../include/sharedMem.h"
 #include "../include/thread.h"
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <pthread.h>
+#include <semaphore.h>
+#include <time.h>
+#include <stdbool.h>
+#include <sys/ipc.h>
+#include <sys/shm.h>
+
 #define MIN_TIME 20
 #define MAX_TIME 60
 #define MIN_SIZE 1
@@ -30,10 +40,19 @@ Estudiantes:
 #define SHARED_MEMORY "files/shared_mem"
 #define SHARED_MEMORY_ID 1
 
-struct SHAREDMEM* sharedControlMemoryPointer;
-FILE *file;
+// struct THREAD {
+//     int pid;
+//     int size;
+//     int time;
+// };
+
+// struct SHAREDMEM {
+//     int lines;
+//     struct THREAD partitions[MAX_LINES];
+// };
+
+struct SHAREDMEM *sharedControlMemoryPointer;
 sem_t *sharedMemorySemaphore;
-sem_t *logsSemaphore;
 
 int threadsQuantity = 0;
 int algorithm = 0;
@@ -65,17 +84,7 @@ void paintMemory() {
     printf("\n");
 }
 
-//ALGORITMS OF MEMORY ASSIGNATION 
-
-/*----------------------------------------------------
-First Fit Algorithm
-Entries:
-    void *arg: thread data
-Description:
-    This function is in charge of allocating the thread in the memory using the first fit algorithm.
-    The first fit algorithm assigns the thread to the first partition that has enough space to allocate it.
-----------------------------------------------------*/
-bool firstFit(void *arg){
+void firstFit(void *arg) {
     struct THREAD *thread = (struct THREAD *)arg;
 
     int size = thread->size;
@@ -92,35 +101,22 @@ bool firstFit(void *arg){
                 }
                 sem_post(sharedMemorySemaphore);
                 paintMemory();
-                return true;
+                return;
             }
         } else {
             consecutives = 0;
             start = i + 1;
         }
     }
-
-    return true;
 }
 
-/*-----------------------------------------------------------------------
-Best Fit Algorithm
-Description:
-    This function is in charge of allocating the thread in the memory using 
-    the best fit algorithm.The best fit algorithm assigns the thread to the 
-    partition with the smallest space available that fits the thread.
-Entries:
-    void *arg: thread data
-Output:
-    void
--------------------------------------------------------------------------
-*/
-bool bestFit(struct THREAD *thread) {
-    printf("Entering best Fit\n");
-    int bestEmptyLine = -1;  // Index of the best fit line start
-    int bestEmptyCounter = 100;  // Counter for the smallest empty line set found
-    int currentEmptyLine = 0;  // Current counter of consecutive empty lines
-    int startEmptyLine = 0;    // Start index of the current empty line set
+void bestFit(void *arg) {
+    struct THREAD *thread = (struct THREAD *)arg;
+    
+    int bestEmptyLine = -1;
+    int bestEmptyCounter = MAX_LINES;
+    int currentEmptyLine = 0;
+    int startEmptyLine = 0;
 
     for (int i = 0; i < sharedControlMemoryPointer->lines; i++) {
         if (sharedControlMemoryPointer->partitions[i].pid == -1) {
@@ -143,8 +139,7 @@ bool bestFit(struct THREAD *thread) {
     }
 
     if (bestEmptyLine == -1) {
-        printf("No hay espacio suficiente para el proceso %ld\n", (long)thread->pid);
-        return false;
+        printf("No hay espacio suficiente para el proceso %d\n", thread->pid);
     } else {
         printf("Espacio asignado para el proceso %d en la línea %d\n", thread->pid, bestEmptyLine);
         sem_wait(sharedMemorySemaphore);
@@ -153,25 +148,10 @@ bool bestFit(struct THREAD *thread) {
         }
         sem_post(sharedMemorySemaphore);
         paintMemory();
-        
     }
-    return true;
 }
 
-
-/*----------------------------------------------------
-Worst Fit Algorithm
-Entries:
-   void *arg: thread data
-Output:
-   bool - true if the thread was allocated, false otherwise
-
-Description:
-   This function is in charge of allocating the thread in the memory using the worst fit algorithm.
-   The worst fit algorithm assigns the thread to the partition with the most space available so that
-   the thread can be allocated in the largest partition possible, leaving the smallest possible partitions.
-----------------------------------------------------*/
-bool worstFit(void *arg){
+void worstFit(void *arg) {
     struct THREAD *thread = (struct THREAD *)arg;
 
     int startIndex = -1;
@@ -181,9 +161,7 @@ bool worstFit(void *arg){
     bool first = true;
 
     for (int i = 0; i < sharedControlMemoryPointer->lines; i++) {
-        // If the partition is emtpy
-        if (sharedControlMemoryPointer->partitions[i] == NULL) {
-            // Start counting the empty lines
+        if (sharedControlMemoryPointer->partitions[i].pid == -1) {
             if (first) {
                 startIndex = i;
                 first = false;
@@ -205,114 +183,31 @@ bool worstFit(void *arg){
     }
 
     if (maxNum < thread->size) {
-        return false;
+        return;
     }
- 
-    sem_wait(sharedMemorySemaphore); // semaphore wait
+
+    paintMemory();
+
+    sem_wait(sharedMemorySemaphore);
     int end = maxNumIndex + thread->size;
-    for (int i = maxNumIndex; i < end; i++) { // Allocate the thread in the each partition
-        printf("Thread %d assigned to partition %d\n", thread->pid, i);
-        sharedControlMemoryPointer->partitions[i] = thread;
+    for (int i = maxNumIndex; i < end; i++) {
+        sharedControlMemoryPointer->partitions[i] = *thread;
     }
     sem_post(sharedMemorySemaphore);
-
-    return true;
 }
 
-
-
-
-//----------------------------------------------------
-// Function: registerProcess
-// Description:
-//    This function is in charge of registering the thread in the log file
-//    It writes the thread data to the log file
-// Entries:
-//    void *arg: thread data
-// Output:
-//    void
-//----------------------------------------------------
-void registerProcess(void *arg, int action){
-    struct THREAD *thread = (struct THREAD *)arg;
-    printf("Registering process %d\n", thread->pid);
-
-    sem_wait(logsSemaphore);  // wait
-    if(action == 0){
-        fprintf(file, "Process %d with size %d and time %d started running.\n", thread->pid, thread->size, thread->time);
-    }else{
-        if (thread->state == FINISHED){
-            fprintf(file, "Process %d with size %d and time %d finished succesfully.\n", thread->pid, thread->size, thread->time);
-        }else if (thread->state == DEAD){
-            fprintf(file, "Process %d with size %d and time %d couldn't enter memory.\n", thread->pid, thread->size, thread->time);
-        }
-    }
-    sem_post(logsSemaphore);  // free
-}
-
-
-/*----------------------------------------------------
-Function: deallocateProcess
-Description:
-   This function is in charge of deallocating the thread from the memory.
-   It iterates through the array of partitions to find the thread and deallocate it.
-   It sets the partition to NULL to indicate that it is empty
-Entries:
-   void *arg: thread data
-Output:
-   void
-----------------------------------------------------*/
-void deallocateProcess(void *arg) {
-    struct THREAD *thread = (struct THREAD *)arg;
-    sem_wait(sharedMemorySemaphore);  // wait for the semaphore
-
-    // Iterate through the array of partition to find the thread and deallocate it
-    for (int i = 0; i < sharedControlMemoryPointer->lines; i++) {
-        //printf("Partition %d\n", i);
-        if (sharedControlMemoryPointer->partitions[i] != NULL && sharedControlMemoryPointer->partitions[i]->pid == thread->pid) {
-            sharedControlMemoryPointer->partitions[i] = NULL;
-            //printf("Thread %d deallocated from partition %d\n", thread->pid, i);
-        }
-    }
-    sem_post(sharedMemorySemaphore);  // free the semaphore
-    paintMemory();
-    createThread();
-    free(thread);  // Free the memory allocated for the thread
-}   
-
-/*----------------------------------------------------
-Allocate the process in memory
-Entries:
-    void *arg: thread data
-Description:
-    It uses the selected algorithm to allocate the thread in the memory.
-----------------------------------------------------*/
 void *allocateProcess(void *arg) {
-    bool allocated = false;
-    
     struct THREAD *thread = (struct THREAD *)arg;
-    thread->state = BLOCKED;
-    registerProcess(thread, 0);
 
-    if(algorithm == 0){
-        allocated = firstFit(thread);
-    }else if(algorithm == 1){
-        allocated = bestFit(thread);
-    }else{
-        allocated = worstFit(thread);
+    if (algorithm == 0) {
+        firstFit(thread);
+    } else if (algorithm == 1) {
+        bestFit(thread);
+    } else {
+        worstFit(thread);
     }
-
-    if(allocated){
-        thread->state = RUNNING;
-        sleep(thread->time);
-        thread->state = FINISHED;
-    }else{
-        thread->state = DEAD;
-    }
-
-    //Calls dellocate
-    registerProcess(thread, 1);
+    sleep(thread->time);  
     deallocateProcess(thread);
-    
     
     return NULL;
 }
@@ -396,44 +291,6 @@ void start() {
     while (threadsQuantity < 4) {
         createThread();
         sleep(1);
-    }
-}
-
-/*----------------------------------------------------
-Funtion for access to shared memory
-Description:
-    This function is in charge of accessing the shared memory and the semaphores.
-    It opens the shared memory and the semaphores to be able to access them.
-----------------------------------------------------
-*/
-void accessSharedMemory(){
-    key_t key = ftok(SHARED_MEMORY, SHARED_MEMORY_ID);
-    int shm_id = shmget(key, sizeof(struct SHAREDMEM), 0666);
-    sharedControlMemoryPointer = (struct SHAREDMEM*) shmat(shm_id, NULL, 0);
-
-    file = fopen("log.txt", "w");
-    if (!file) {
-        fprintf(stderr, "Failed to open log file\n");
-        return;
-    }
-
-    if (sharedControlMemoryPointer == (void*)-1) {
-        perror("shmat failed");
-        exit(EXIT_FAILURE);
-    }
-
-    // Open the semaphore
-    sharedMemorySemaphore = sem_open("sharedMemorySemaphore", 0);
-    if (sharedMemorySemaphore == SEM_FAILED) {
-        perror("sem_open failed");
-        exit(EXIT_FAILURE);
-    }
-
-    // Open log semaphore
-    logsSemaphore = sem_open("logsSemaphore", 0);
-    if (logsSemaphore == SEM_FAILED) {
-        perror("sem_open failed");
-        exit(EXIT_FAILURE);
     }
 }
 
