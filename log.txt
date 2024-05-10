@@ -1,0 +1,10 @@
+Process 0 with size 8 and time 44 started running.
+Process 1 with size 9 and time 40 started running.
+Process 1 with size 9 and time 40 couldn't enter memory.
+Process 2 with size 8 and time 56 started running.
+Process 2 with size 8 and time 56 couldn't enter memory.
+Process 3 with size 3 and time 30 started running.
+Process 3 with size 3 and time 30 finished succesfully.
+Process 4 with size 3 and time 45 started running.
+Process 0 with size 8 and time 44 finished succesfully.
+Process 5 with size 3 and time 
