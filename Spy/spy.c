@@ -85,7 +85,7 @@ Output:
 -----------------------------------------------------*/
 void printInfoProcess() {
     system("clear");
-    int lastThreadId = -1;	
+    int lastThreadId;	
 
     printf("Información de los Procesos:\n");
     printf("+-----+------+-------+-------------+\n");
