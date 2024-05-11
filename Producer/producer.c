@@ -247,6 +247,12 @@ Output:
    void
 ----------------------------------------------------*/
 void registerProcess(void *arg, int action){
+    file = fopen("log.txt", "a");
+    if (!file) {
+        fprintf(stderr, "Failed to open log file\n");
+        return;
+    }
+
     struct THREAD *thread = (struct THREAD *)arg;
     if(action == 0){
         printf("Registering process %d with time %d\n", thread->pid, thread->time);
@@ -255,7 +261,6 @@ void registerProcess(void *arg, int action){
         printf("Ending process %d\n", thread->pid);
     }
     
-
     sem_wait(logsSemaphore);  // wait
     if(action == 0){
         fprintf(file, "Process %d with size %d and time %d started running.\n", thread->pid, thread->size, thread->time);
@@ -267,6 +272,7 @@ void registerProcess(void *arg, int action){
         }
     }
     sem_post(logsSemaphore);  // free
+    fclose(file);
 }
 
 void *allocateMainProcess(void *arg) {
@@ -275,7 +281,6 @@ void *allocateMainProcess(void *arg) {
     printf("Distribution: %d\n", thread->distribution);
 
     while (1) {
-
 
         createThread();
         sleep(thread->distribution);
@@ -405,6 +410,7 @@ void accessSharedMemory() {
     int shm_id = shmget(key, sizeof(struct SHAREDMEM), 0666);
     sharedControlMemoryPointer = (struct SHAREDMEM*) shmat(shm_id, NULL, 0);
 
+    // Open log file
     file = fopen("log.txt", "w");
     if (!file) {
         fprintf(stderr, "Failed to open log file\n");
@@ -428,6 +434,7 @@ void accessSharedMemory() {
         perror("sem_open failed");
         exit(EXIT_FAILURE);
     }
+    fclose(file);
 }
 
 /*----------------------------------------------------
@@ -470,7 +477,7 @@ void freeMemory() {
 
     sem_close(sharedMemorySemaphore);
     sem_close(logsSemaphore);
-    fclose(file);
+    
 }
 
 /*----------------------------------------------------
