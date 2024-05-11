@@ -15,30 +15,39 @@ Estudiantes:
 #include <stdio.h>
 #include <stdlib.h>
 
+/*-----------------------------------------------------------------------
+Funtion for destroy the shared memory
+Entries: 
+        -> key_t processSharedMemoryKey: key for the shared memory of process
+        -> key_t controlSharedMemory: key for the shared memory of control
+Return:
+        -> 0 if the shared memory was destroyed successfully
+        -> 1 if the shared memory was not destroyed successfully
+*/
 int finishEnvironment(key_t processSharedMemoryKey, key_t controlSharedMemory) {
     int shmid;
     shmid = shmget(processSharedMemoryKey, 0, 0644);
     if (shmid == -1) {
         perror("1-Error obtaining the shared memory ID");
-        return 1;  // Cambiado de exit(1) a return 1 para un mejor manejo de errores
+        return 1;  
     }
 
     if (shmctl(shmid, IPC_RMID, NULL) == -1) {
         perror("2-Error destroying the shared memory");
-        return 1;  // Cambiado de exit(1) a return 1
+        return 1;  
     }
     printf("\nShared memory destroyed!!!\n");
     shmid = shmget(controlSharedMemory, 0, 0644);
     if (shmid == -1) {
         perror("Error obtaining the shared memory ID");
-        return 1;  // Cambiado de exit(1) a return 1
+        return 1;  
     }
 
     if (shmctl(shmid, IPC_RMID, NULL) == -1) {
         perror("Error destroying the shared memory");
-        return 1;  // Cambiado de exit(1) a return 1
+        return 1;  
     }
-    printf("\nShared memory destroyed!!!\n");
+    printf("\nControl memory destroyed!!!\n");
 
     
 
@@ -57,9 +66,6 @@ int getKeys() {
         perror("ftok failed");
         return 1;
     }
-
-    printf("\n 1- Shared memory key: %d\n", processSharedMemoryKey);
-    printf("\n 2- control memory key: %d\n", controlSharedMemory);
 
     return finishEnvironment(processSharedMemoryKey, controlSharedMemory);
 }

@@ -1,1 +1,1 @@
-Process 0 with size 6 and time 20 started running.
+Process 0 with size 9 and time 51 started running.

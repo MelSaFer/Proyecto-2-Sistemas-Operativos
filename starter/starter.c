@@ -59,7 +59,6 @@ int startEnvironment(int lines) {
         perror("Error creating the key for the shared memory");
         exit(1);
     }
-    printf("\nShared memory key: %d\n", processSharedMemoryKey);
 
     // Create the shared memory for the process
     processSharedMemId = shmget(processSharedMemoryKey, sizeof(struct THREAD) * lines, 0666 | IPC_CREAT | IPC_EXCL);
@@ -74,13 +73,12 @@ int startEnvironment(int lines) {
                 perror("Error getting the shared memory:/)");
                 exit(1);
             }
-            printf("\nExisting shared memory segment with id %d opened\n", processSharedMemId);
         } else {
             perror("Error creating the shared memory");
             exit(1);
         }
     } else {
-        printf("\nShared memory segment created with id %d\n", processSharedMemId);
+        printf("\nControl memory segment created with id %d\n", processSharedMemId);
     }
 
     //--------------------------------------------------------------------------------	
@@ -91,7 +89,6 @@ int startEnvironment(int lines) {
         perror("Error creating the key for the control shared memory");
         exit(1);
     }
-    printf("\nControl shared memory key: %d\n", controlSharedMemoryKey);
 
     // Create the shared memory for the memory
     controlSharedMemoryId = shmget(controlSharedMemoryKey, sizeof(struct SHAREDMEM), 0666 | IPC_CREAT | IPC_EXCL);
@@ -106,7 +103,6 @@ int startEnvironment(int lines) {
                 perror("Error getting the shared memory:/)");
                 exit(1);
             }
-            printf("\nExisting shared memory segment with id %d opened\n", controlSharedMemoryId);
         } else {
             perror("Error creating the shared memory");
             exit(1);
@@ -122,7 +118,6 @@ int startEnvironment(int lines) {
         perror("shmat");
         exit(1);
     }
-    printf("\nShared control memory attached\n");
 
     // Set initial values to control structure of shared control memory
     sharedMemory->lines = lines;
@@ -151,12 +146,11 @@ int startEnvironment(int lines) {
         exit(1);
     }
 
+    printf("\nSemaphores created successfully!!\n");
+
     // Closing the semaphores
     sem_close(sharedMemorySemaphore);
     sem_close(logsSemaphore);
-
-    printf("\nShared memory segment created with id %d\n", processSharedMemId);
-    printf("\nShared memory segment created with id %d\n", controlSharedMemoryId);
     
     return 0; // Return success
 
@@ -169,6 +163,13 @@ int main() {
     scanf("%d", &lines);
 
     // Start the environment
-    startEnvironment(lines);
+    int state = startEnvironment(lines);
+
+    if(state == 0) {
+        printf("\nEnvironment started successfully!!\n");
+    } else {
+        printf("Error starting the environment\n");
+    }
+
     return 0;
 }
