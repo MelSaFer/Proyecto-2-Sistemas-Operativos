@@ -328,21 +328,14 @@ void *allocateProcess(void *arg) {
         if (sharedControlMemoryPointer->partitions[i].pid == thread->pid) {
             if (allocated)
             {
-                sem_wait(sharedMemorySemaphore);
                 sharedControlMemoryPointer->partitions[i].state = RUNNING;
-                sem_post(sharedMemorySemaphore);
                 sleep(thread->time);
-                sem_wait(sharedMemorySemaphore);
                 sharedControlMemoryPointer->partitions[i].state = FINISHED;
-                sem_post(sharedMemorySemaphore);
                 break;
             }
             else
             {
-                //sem_wait("sharedMemorySemaphore", 0);
-                sem_wait(sharedMemorySemaphore);
                 sharedControlMemoryPointer->partitions[i].state = DEAD;
-                sem_post(sharedMemorySemaphore);
                 break;
             }
             
@@ -377,7 +370,7 @@ void deallocateProcess(void *arg) {
     }
     sem_post(sharedMemorySemaphore);
     // createThread();
-    //free(thread);
+    free(thread);
 }
 
 /*----------------------------------------------------
@@ -554,7 +547,6 @@ void start() {
 
 }
 
-// Main function
 int main() {
     accessSharedMemory();
     algorithm = printAlgorithmMenu();
