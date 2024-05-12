@@ -257,10 +257,10 @@ void registerProcess(void *arg, int action){
 
     struct THREAD *thread = (struct THREAD *)arg;
     if(action == 0){
-        printf("Registering process %d with time %d\n", thread->pid, thread->time);
+        printf("    Registering process %d with time %d\n", thread->pid, thread->time);
     }
     else{
-        printf("Ending process %d\n", thread->pid);
+        printf("    Ending process %d\n", thread->pid);
     }
     
 
@@ -294,7 +294,7 @@ void *allocateMainProcess(void *arg) {
 
 
         createThread();
-        sleep(5);
+        sleep(thread->distribution);
         
     }
 
@@ -325,10 +325,13 @@ void *allocateProcess(void *arg) {
     } else {
         allocated = worstFit(thread);
     }
-    for (int i = 0; i < sharedControlMemoryPointer->lines; i++) {
-        if (sharedControlMemoryPointer->partitions[i].pid == thread->pid) {
-            if (allocated)
-            {
+
+    if(!allocated) {
+        //sem_wait("sharedMemorySemaphore", 0);
+        thread->state = DEAD;
+    } else {
+        for (int i = 0; i < sharedControlMemoryPointer->lines; i++) {
+            if (sharedControlMemoryPointer->partitions[i].pid == thread->pid) {
                 thread->state = RUNNING;
                 sem_wait(sharedMemorySemaphore);
                 sharedControlMemoryPointer->partitions[i].state = RUNNING;
@@ -340,26 +343,12 @@ void *allocateProcess(void *arg) {
                 sem_wait(sharedMemorySemaphore);
                 sharedControlMemoryPointer->partitions[i].state = FINISHED;
                 sem_post(sharedMemorySemaphore);
-                break;
+                break;            
             }
-            else
-            {
-                //sem_wait("sharedMemorySemaphore", 0);
-                thread->state = DEAD;
-
-                printf("!!!!!Process %d couldn't enter memory\n", thread->pid);
-
-                sem_wait(sharedMemorySemaphore);
-                sharedControlMemoryPointer->partitions[i].state = DEAD;
-                sem_post(sharedMemorySemaphore);
-                break;
-            }
-            
         }
     }
     sleep(SLEEP_TIME);
 
-    printf("!!!!!Process state %d\n", thread->state);
     registerProcess(thread, 1);  
     deallocateProcess(thread);
     
@@ -429,7 +418,7 @@ void createMainThread() {
         return;
     }
 
-    data->distribution = generateRandomNumber(1, 5);
+    data->distribution = generateRandomNumber(MIN_DISTRIBUTION, MAX_TIME);
 
     pthread_t thread;
     if (pthread_create(&thread, NULL, allocateMainProcess, (void *)data) != 0) {
