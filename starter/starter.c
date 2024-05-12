@@ -39,7 +39,13 @@ struct SHAREDMEM* sharedMemory;
 
 sem_t *sharedMemorySemaphore, *logsSemaphore;
 
-// Start Environment function
+/*-----------------------------------------------
+Function to start the environment
+Entry:
+    int lines -> number of lines to be created
+Output:
+    int -> 0 if the environment was created successfully, 1 otherwise
+------------------------------------------------*/
 int startEnvironment(int lines) {
 
     const char *filepath = SHARED_MEMORY;
@@ -150,6 +156,8 @@ int startEnvironment(int lines) {
         perror("Unable to create logsSemaphore");
         exit(1);
     }
+
+    printf("\nSemaphores created successfully!!\n");
 
     // Closing the semaphores
     sem_close(sharedMemorySemaphore);
