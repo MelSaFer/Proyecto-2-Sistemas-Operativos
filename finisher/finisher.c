@@ -14,13 +14,19 @@ Estudiantes:
 #include <sys/shm.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <semaphore.h>
+
+sem_t *sharedMemorySemaphore, *logsSemaphore;
+
+
+
 
 /*-----------------------------------------------------------------------
 Funtion for destroy the shared memory
 Entries: 
         -> key_t processSharedMemoryKey: key for the shared memory of process
         -> key_t controlSharedMemory: key for the shared memory of control
-Return:
+Output:
         -> 0 if the shared memory was destroyed successfully
         -> 1 if the shared memory was not destroyed successfully
 */
@@ -49,11 +55,19 @@ int finishEnvironment(key_t processSharedMemoryKey, key_t controlSharedMemory) {
     }
     printf("\nControl memory destroyed!!!\n");
 
-    
-
     return 0;
 }
 
+
+
+/*-----------------------------------------------------------------------
+Funtion for get the keys of the shared memory
+Entries: 
+        -> None
+Output:
+        -> 0 if the keys were obtained successfully
+        -> 1 if the keys were not obtained successfully
+---------------------------------------------------------------------------*/
 int getKeys() {
     const char *path1 = "files/process_mem";
     const char *path2 = "files/shared_mem";
@@ -69,6 +83,7 @@ int getKeys() {
 
     return finishEnvironment(processSharedMemoryKey, controlSharedMemory);
 }
+
 
 int main() {
     int result = getKeys();
