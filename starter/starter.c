@@ -106,7 +106,7 @@ int startEnvironment(int lines) {
                 perror("Error getting the shared memory:/)");
                 exit(1);
             }
-            printf("\nExisting shared memory segment with id %d opened\n", controlSharedMemoryId);
+            //printf("\nExisting shared memory segment with id %d opened\n", controlSharedMemoryId);
         } else {
             perror("Error creating the shared memory");
             exit(1);
@@ -165,10 +165,25 @@ int startEnvironment(int lines) {
 int main() {
     // Input the number of lines
     int lines;
+
     printf("Enter the number of lines: ");
     scanf("%d", &lines);
 
+    while(0 >= lines || lines > MAX_LINES){
+        system("clear");
+        printf("Invalid number of lines, please enter a number between 1 and %d\n", MAX_LINES);
+        printf("Enter the number of lines: ");
+        scanf("%d", &lines);
+    }
+
     // Start the environment
-    startEnvironment(lines);
+    int state = startEnvironment(lines);
+
+    if(state == 0) {
+        printf("\nEnvironment started successfully!!\n");
+    } else {
+        printf("Error starting the environment\n");
+    }
+
     return 0;
 }

@@ -30,6 +30,7 @@ Estudiantes:
 #define MAX_TIME 60
 #define MIN_SIZE 1
 #define MAX_SIZE 10
+#define SLEEP_TIME 5
 #define MAX_LINES 100
 #define SHARED_MEMORY "files/shared_mem"
 #define SHARED_MEMORY_ID 1
@@ -115,7 +116,8 @@ bool firstFit(void *arg) {
                     sharedControlMemoryPointer->partitions[j] = *thread;
                 }
                 sem_post(sharedMemorySemaphore);
-                paintMemory();
+                sleep(SLEEP_TIME);
+                printf("    Space assigned for process %d in line %d\n", thread->pid, start);
                 return true;
             }
         } else {
@@ -124,6 +126,7 @@ bool firstFit(void *arg) {
         }
     }
 
+    printf("    There is not enough space for process %d\n", thread->pid);
     return false;
 }
 
@@ -167,16 +170,16 @@ bool bestFit(void *arg) {
     }
 
     if (bestEmptyLine == -1) {
-        printf("No hay espacio suficiente para el proceso %d\n", thread->pid);
+        printf("    There is not enough space for process %d\n", thread->pid);
         return false;
     } else {
-        printf("Espacio asignado para el proceso %d en la línea %d\n", thread->pid, bestEmptyLine);
+        printf("    Space assigned for process %d in line %d\n", thread->pid, bestEmptyLine);
         sem_wait(sharedMemorySemaphore);
         for (int i = bestEmptyLine; i < bestEmptyLine + thread->size; i++) {
             sharedControlMemoryPointer->partitions[i] = *thread;
         }
         sem_post(sharedMemorySemaphore);
-        paintMemory();
+        sleep(SLEEP_TIME);
     }
     return true;
 }
@@ -223,6 +226,7 @@ bool worstFit(void *arg) {
     }
 
     if (maxNum < thread->size) {
+        printf("    There is not enough space for process %d\n", thread->pid);
         return false;
     }
 
@@ -232,6 +236,9 @@ bool worstFit(void *arg) {
         sharedControlMemoryPointer->partitions[i] = *thread;
     }
     sem_post(sharedMemorySemaphore);
+
+    sleep(SLEEP_TIME);
+    printf("    Space assigned for process %d in line %d\n", thread->pid, maxNumIndex);
 
     return true;
 }
@@ -247,6 +254,7 @@ Output:
    void
 ----------------------------------------------------*/
 void registerProcess(void *arg, int action){
+
     struct THREAD *thread = (struct THREAD *)arg;
     if(action == 0){
         printf("Registering process %d with time %d\n", thread->pid, thread->time);
@@ -257,6 +265,12 @@ void registerProcess(void *arg, int action){
     
 
     sem_wait(logsSemaphore);  // wait
+    file = fopen("log.txt", "a");
+    if (!file) {
+        fprintf(stderr, "Failed to open log file\n");
+        return;
+    }
+
     if(action == 0){
         fprintf(file, "Process %d with size %d and time %d started running.\n", thread->pid, thread->size, thread->time);
     }else{
@@ -266,19 +280,21 @@ void registerProcess(void *arg, int action){
             fprintf(file, "Process %d with size %d and time %d couldn't enter memory.\n", thread->pid, thread->size, thread->time);
         }
     }
+
+    fclose(file);
     sem_post(logsSemaphore);  // free
 }
 
 void *allocateMainProcess(void *arg) {
 
     struct MAIN_THREAD *thread = (struct MAIN_THREAD *)arg;
-    printf("Distribution: %d\n", thread->distribution);
+    //printf("Distribution: %d\n", thread->distribution);
 
     while (1) {
 
 
         createThread();
-        sleep(thread->distribution);
+        sleep(5);
         
     }
 
@@ -298,6 +314,8 @@ void *allocateProcess(void *arg) {
     bool allocated = false;
     struct THREAD *thread = (struct THREAD *)arg;
     thread->state = BLOCKED;
+    printf("    Process %d searching for memory\n", thread->pid);
+
     registerProcess(thread, 0);
 
     if (algorithm == 0) {
@@ -307,14 +325,41 @@ void *allocateProcess(void *arg) {
     } else {
         allocated = worstFit(thread);
     }
-    if(allocated){
-        thread->state = RUNNING;
-        sleep(thread->time);
-        thread->state = FINISHED;
-    }else{
-        thread->state = DEAD;
-    }
+    for (int i = 0; i < sharedControlMemoryPointer->lines; i++) {
+        if (sharedControlMemoryPointer->partitions[i].pid == thread->pid) {
+            if (allocated)
+            {
+                thread->state = RUNNING;
+                sem_wait(sharedMemorySemaphore);
+                sharedControlMemoryPointer->partitions[i].state = RUNNING;
+                sem_post(sharedMemorySemaphore);
 
+                sleep(thread->time);
+
+                thread->state = FINISHED;
+                sem_wait(sharedMemorySemaphore);
+                sharedControlMemoryPointer->partitions[i].state = FINISHED;
+                sem_post(sharedMemorySemaphore);
+                break;
+            }
+            else
+            {
+                //sem_wait("sharedMemorySemaphore", 0);
+                thread->state = DEAD;
+
+                printf("!!!!!Process %d couldn't enter memory\n", thread->pid);
+
+                sem_wait(sharedMemorySemaphore);
+                sharedControlMemoryPointer->partitions[i].state = DEAD;
+                sem_post(sharedMemorySemaphore);
+                break;
+            }
+            
+        }
+    }
+    sleep(SLEEP_TIME);
+
+    printf("!!!!!Process state %d\n", thread->state);
     registerProcess(thread, 1);  
     deallocateProcess(thread);
     
@@ -341,9 +386,8 @@ void deallocateProcess(void *arg) {
         }
     }
     sem_post(sharedMemorySemaphore);
-    paintMemory();
     // createThread();
-    free(thread);
+    // free(thread);
 }
 
 /*----------------------------------------------------
@@ -361,6 +405,7 @@ void createThread() {
     data->size = generateRandomNumber(MIN_SIZE, MAX_SIZE);
     data->time = generateRandomNumber(MIN_TIME, MAX_TIME);
     data->pid = threadsQuantity;
+    data->state = BLOCKED;
 
     pthread_t thread;
     if (pthread_create(&thread, NULL, allocateProcess, (void *)data) != 0) {
@@ -384,7 +429,7 @@ void createMainThread() {
         return;
     }
 
-    data->distribution = generateRandomNumber(MIN_DISTRIBUTION, MAX_TIME);
+    data->distribution = generateRandomNumber(1, 5);
 
     pthread_t thread;
     if (pthread_create(&thread, NULL, allocateMainProcess, (void *)data) != 0) {
@@ -406,10 +451,11 @@ void accessSharedMemory() {
     sharedControlMemoryPointer = (struct SHAREDMEM*) shmat(shm_id, NULL, 0);
 
     file = fopen("log.txt", "w");
-    if (!file) {
-        fprintf(stderr, "Failed to open log file\n");
-        return;
+    if (file == NULL) {
+        perror("fopen failed");
+        exit(EXIT_FAILURE);
     }
+    fclose(file);
 
     if (sharedControlMemoryPointer == (void*)-1) {
         perror("shmat failed");
@@ -470,7 +516,7 @@ void freeMemory() {
 
     sem_close(sharedMemorySemaphore);
     sem_close(logsSemaphore);
-    fclose(file);
+    // fclose(file);
 }
 
 /*----------------------------------------------------

@@ -123,14 +123,16 @@ void accessSharedMemory(){
     sharedControlMemorySpy = (struct SHAREDMEM*) shmat(shm_id, NULL, 0);
 
     if (sharedControlMemorySpy == (void*)-1) {
-        perror("shmat failed");
+        //perror("shmat failed");
+        fprintf(stderr, "Failed to attach shared memory, try to execute starter first\n");
         exit(EXIT_FAILURE);
     }
 
     // Open the semaphore
     sharedMemorySemaphore = sem_open("sharedMemorySemaphore", 0);
     if (sharedMemorySemaphore == SEM_FAILED) {
-        perror("sem_open failed");
+        //perror("sem_open failed");
+        fprintf(stderr, "Failed to attach shared memory, try to execute starter first\n");
         exit(EXIT_FAILURE);
     }
     // print sharedControlMemorySpy->lines
