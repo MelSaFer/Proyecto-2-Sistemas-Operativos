@@ -49,6 +49,7 @@ Output:
 int startEnvironment(int lines) {
 
     const char *filepath = SHARED_MEMORY;
+    const char *filepath2 = PROCESS_SHARED_MEMORY;
     
     // Create the file
     int fd = open(filepath, O_RDWR | O_CREAT, 0666);
@@ -57,6 +58,14 @@ int startEnvironment(int lines) {
         exit(EXIT_FAILURE);
     }
     close(fd);
+
+    // Create the file
+    int fd2 = open(filepath2, O_RDWR | O_CREAT, 0666);
+    if (fd2 == -1) {
+        perror("Failed to open file");
+        exit(EXIT_FAILURE);
+    }
+    close(fd2);
 
     // Create the key we are going to use for the shared memory
     processSharedMemoryKey = ftok(PROCESS_SHARED_MEMORY, PROCESS_SHARED_MEMORY_ID);
