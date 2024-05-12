@@ -280,13 +280,6 @@ void registerProcess(void *arg, int action){
     fclose(file);
 }
 
-/*----------------------------------------------------
-Funtion for allocate the main process
-Entries:
-    void *arg: thread data
-Output:
-    void
-----------------------------------------------------*/
 void *allocateMainProcess(void *arg) {
 
     struct MAIN_THREAD *thread = (struct MAIN_THREAD *)arg;
@@ -303,7 +296,9 @@ void *allocateMainProcess(void *arg) {
 }
 
 /*----------------------------------------------------
-Function for allocate the process in memory
+Function: allocateProcess
+Description:
+    Allocate the process in memory
 Entries:
     void *arg: thread data
 Description:
@@ -374,11 +369,9 @@ void deallocateProcess(void *arg) {
 }
 
 /*----------------------------------------------------
-Function for creating a new thread for the process
-Entries:
-    None
-output:
-    void
+Function: createThread
+Description:
+   This function is in charge of creating a new thread for the process
 ----------------------------------------------------*/
 void createThread() {
     struct THREAD *data = malloc(sizeof(struct THREAD));
@@ -495,13 +488,6 @@ int printAlgorithmMenu() {
     return choice - 1;
 }
 
-/*----------------------------------------------------
-Funtion for free the memory
-Entries:
-    None
-Output:
-    void
-----------------------------------------------------*/
 void freeMemory() {
     sem_wait(sharedMemorySemaphore);
     for (int i = 0; i < sharedControlMemoryPointer->lines; i++) {

@@ -39,13 +39,7 @@ struct SHAREDMEM* sharedMemory;
 
 sem_t *sharedMemorySemaphore, *logsSemaphore;
 
-/*-----------------------------------------------
-Function to start the environment
-Entry:
-    int lines -> number of lines to be created
-Output:
-    int -> 0 if the environment was created successfully, 1 otherwise
-------------------------------------------------*/
+// Start Environment function
 int startEnvironment(int lines) {
 
     const char *filepath = SHARED_MEMORY;
@@ -162,20 +156,11 @@ int startEnvironment(int lines) {
 
 }
 
-// Main function
 int main() {
     // Input the number of lines
     int lines;
-
     printf("Enter the number of lines: ");
     scanf("%d", &lines);
-
-    while(0 >= lines || lines > MAX_LINES){
-        system("clear");
-        printf("Invalid number of lines, please enter a number between 1 and %d\n", MAX_LINES);
-        printf("Enter the number of lines: ");
-        scanf("%d", &lines);
-    }
 
     // Start the environment
     int state = startEnvironment(lines);

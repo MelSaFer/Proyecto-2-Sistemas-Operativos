@@ -171,6 +171,10 @@ int printSpyMenu() {
 
 /*----------------------------------------------------
 Main function
+Entries:
+    None
+Output:
+    int -> 0
 ----------------------------------------------------*/
 int main(){
     accessSharedMemory();
