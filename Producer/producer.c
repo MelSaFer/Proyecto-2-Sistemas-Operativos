@@ -30,7 +30,6 @@ Estudiantes:
 #define MAX_TIME 60
 #define MIN_SIZE 1
 #define MAX_SIZE 10
-#define SLEEP_TIME 5
 #define MAX_LINES 100
 #define SHARED_MEMORY "files/shared_mem"
 #define SHARED_MEMORY_ID 1
@@ -116,7 +115,6 @@ bool firstFit(void *arg) {
                     sharedControlMemoryPointer->partitions[j] = *thread;
                 }
                 sem_post(sharedMemorySemaphore);
-                sleep(SLEEP_TIME);
                 printf("    Space assigned for process %d in line %d\n", thread->pid, start);
                 return true;
             }
@@ -178,7 +176,6 @@ bool bestFit(void *arg) {
             sharedControlMemoryPointer->partitions[i] = *thread;
         }
         sem_post(sharedMemorySemaphore);
-        sleep(SLEEP_TIME);
     }
     return true;
 }
@@ -235,7 +232,6 @@ bool worstFit(void *arg) {
         sharedControlMemoryPointer->partitions[i] = *thread;
     }
     sem_post(sharedMemorySemaphore);
-    sleep(SLEEP_TIME);
     printf("    Space assigned for process %d in line %d\n", thread->pid, maxNumIndex);
 
     return true;
@@ -307,7 +303,7 @@ Description:
 void *allocateProcess(void *arg) {
     bool allocated = false;
     struct THREAD *thread = (struct THREAD *)arg;
-    // thread->state = BLOCKED;
+    thread->state = BLOCKED;
     printf("    Process %d searching for memory\n", thread->pid);
 
     registerProcess(thread, 0);
@@ -319,24 +315,13 @@ void *allocateProcess(void *arg) {
     } else {
         allocated = worstFit(thread);
     }
-    for (int i = 0; i < sharedControlMemoryPointer->lines; i++) {
-        if (sharedControlMemoryPointer->partitions[i].pid == thread->pid) {
-            if (allocated)
-            {
-                sharedControlMemoryPointer->partitions[i].state = RUNNING;
-                sleep(thread->time);
-                sharedControlMemoryPointer->partitions[i].state = FINISHED;
-                break;
-            }
-            else
-            {
-                sharedControlMemoryPointer->partitions[i].state = DEAD;
-                break;
-            }
-            
-        }
+    if(allocated){
+        thread->state = RUNNING;
+        sleep(thread->time);
+        thread->state = FINISHED;
+    }else{
+        thread->state = DEAD;
     }
-    sleep(SLEEP_TIME);
 
     registerProcess(thread, 1);  
     deallocateProcess(thread);
@@ -383,7 +368,6 @@ void createThread() {
     data->size = generateRandomNumber(MIN_SIZE, MAX_SIZE);
     data->time = generateRandomNumber(MIN_TIME, MAX_TIME);
     data->pid = threadsQuantity;
-    data->state = BLOCKED;
 
     pthread_t thread;
     if (pthread_create(&thread, NULL, allocateProcess, (void *)data) != 0) {
@@ -407,7 +391,7 @@ void createMainThread() {
         return;
     }
 
-    data->distribution = generateRandomNumber(1, 5);
+    data->distribution = generateRandomNumber(MIN_DISTRIBUTION, MAX_TIME);
 
     pthread_t thread;
     if (pthread_create(&thread, NULL, allocateMainProcess, (void *)data) != 0) {
