@@ -125,6 +125,10 @@ bool firstFit(void *arg) {
             start = i + 1;
         }
     }
+<<<<<<< HEAD
+=======
+
+>>>>>>> fio
     printf("    There is not enough space for process %d\n", thread->pid);
     return false;
 }
@@ -238,6 +242,9 @@ bool worstFit(void *arg) {
     sleep(SLEEP_TIME);
     printf("    Space assigned for process %d in line %d\n", thread->pid, maxNumIndex);
 
+    sleep(SLEEP_TIME);
+    printf("    Space assigned for process %d in line %d\n", thread->pid, maxNumIndex);
+
     return true;
 }
 
@@ -252,11 +259,6 @@ Output:
    void
 ----------------------------------------------------*/
 void registerProcess(void *arg, int action){
-    file = fopen("log.txt", "a");
-    if (!file) {
-        fprintf(stderr, "Failed to open log file\n");
-        return;
-    }
 
     struct THREAD *thread = (struct THREAD *)arg;
     if(action == 0){
@@ -267,6 +269,12 @@ void registerProcess(void *arg, int action){
     }
     
     sem_wait(logsSemaphore);  // wait
+    file = fopen("log.txt", "a");
+    if (!file) {
+        fprintf(stderr, "Failed to open log file\n");
+        return;
+    }
+
     if(action == 0){
         fprintf(file, "Process %d with size %d and time %d started running.\n", thread->pid, thread->size, thread->time);
     }else{
@@ -276,6 +284,8 @@ void registerProcess(void *arg, int action){
             fprintf(file, "Process %d with size %d and time %d couldn't enter memory.\n", thread->pid, thread->size, thread->time);
         }
     }
+
+    fclose(file);
     sem_post(logsSemaphore);  // free
     fclose(file);
 }
@@ -312,7 +322,7 @@ Description:
 void *allocateProcess(void *arg) {
     bool allocated = false;
     struct THREAD *thread = (struct THREAD *)arg;
-    // thread->state = BLOCKED;
+    thread->state = BLOCKED;
     printf("    Process %d searching for memory\n", thread->pid);
 
     registerProcess(thread, 0);
@@ -324,28 +334,26 @@ void *allocateProcess(void *arg) {
     } else {
         allocated = worstFit(thread);
     }
-    for (int i = 0; i < sharedControlMemoryPointer->lines; i++) {
-        if (sharedControlMemoryPointer->partitions[i].pid == thread->pid) {
-            if (allocated)
-            {
+
+    if(!allocated) {
+        //sem_wait("sharedMemorySemaphore", 0);
+        thread->state = DEAD;
+    } else {
+        for (int i = 0; i < sharedControlMemoryPointer->lines; i++) {
+            if (sharedControlMemoryPointer->partitions[i].pid == thread->pid) {
+                thread->state = RUNNING;
                 sem_wait(sharedMemorySemaphore);
                 sharedControlMemoryPointer->partitions[i].state = RUNNING;
                 sem_post(sharedMemorySemaphore);
+
                 sleep(thread->time);
+
+                thread->state = FINISHED;
                 sem_wait(sharedMemorySemaphore);
                 sharedControlMemoryPointer->partitions[i].state = FINISHED;
                 sem_post(sharedMemorySemaphore);
-                break;
+                break;            
             }
-            else
-            {
-                //sem_wait("sharedMemorySemaphore", 0);
-                sem_wait(sharedMemorySemaphore);
-                sharedControlMemoryPointer->partitions[i].state = DEAD;
-                sem_post(sharedMemorySemaphore);
-                break;
-            }
-            
         }
     }
     sleep(SLEEP_TIME);
@@ -377,7 +385,7 @@ void deallocateProcess(void *arg) {
     }
     sem_post(sharedMemorySemaphore);
     // createThread();
-    //free(thread);
+    // free(thread);
 }
 
 /*----------------------------------------------------
@@ -444,10 +452,11 @@ void accessSharedMemory() {
 
     // Open log file
     file = fopen("log.txt", "w");
-    if (!file) {
-        fprintf(stderr, "Failed to open log file\n");
-        return;
+    if (file == NULL) {
+        perror("fopen failed");
+        exit(EXIT_FAILURE);
     }
+    fclose(file);
 
     if (sharedControlMemoryPointer == (void*)-1) {
         //perror("shmat failed");
@@ -518,7 +527,7 @@ void freeMemory() {
 
     sem_close(sharedMemorySemaphore);
     sem_close(logsSemaphore);
-    
+    // fclose(file);
 }
 
 /*----------------------------------------------------

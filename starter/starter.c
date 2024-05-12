@@ -109,6 +109,7 @@ int startEnvironment(int lines) {
                 perror("Error getting the shared memory:/)");
                 exit(1);
             }
+            //printf("\nExisting shared memory segment with id %d opened\n", controlSharedMemoryId);
         } else {
             perror("Error creating the shared memory");
             exit(1);

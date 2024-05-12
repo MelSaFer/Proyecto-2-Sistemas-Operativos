@@ -1,1 +1,5 @@
+<<<<<<< HEAD
 Process 0 with size 9 and time 51 started running.
+=======
+Process 0 with size 1 and time 26 started running.
+>>>>>>> fio
