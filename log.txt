@@ -1,5 +1,193 @@
-<<<<<<< HEAD
-Process 0 with size 9 and time 51 started running.
-=======
-Process 0 with size 1 and time 26 started running.
->>>>>>> fio
+Process 0 with size 10 and time 36 started running.
+Process 1 with size 5 and time 43 started running.
+Process 2 with size 1 and time 37 started running.
+Process 3 with size 3 and time 36 started running.
+Process 4 with size 8 and time 53 started running.
+Process 4 with size 8 and time 53 couldn't enter memory.
+Process 5 with size 4 and time 23 started running.
+Process 5 with size 4 and time 23 couldn't enter memory.
+Process 6 with size 4 and time 30 started running.
+Process 6 with size 4 and time 30 couldn't enter memory.
+Process 7 with size 4 and time 42 started running.
+Process 8 with size 7 and time 45 started running.
+Process 7 with size 4 and time 42 couldn't enter memory.
+Process 8 with size 7 and time 45 couldn't enter memory.
+Process 9 with size 3 and time 56 started running.
+Process 0 with size 10 and time 36 finished succesfully.
+Process 9 with size 3 and time 56 couldn't enter memory.
+Process 10 with size 3 and time 57 started running.
+Process 11 with size 10 and time 25 started running.
+Process 2 with size 1 and time 37 finished succesfully.
+Process 1 with size 5 and time 43 finished succesfully.
+Process 11 with size 10 and time 25 couldn't enter memory.
+Process 12 with size 5 and time 50 started running.
+Process 3 with size 3 and time 36 finished succesfully.
+Process 13 with size 2 and time 47 started running.
+Process 14 with size 3 and time 23 started running.
+Process 15 with size 2 and time 30 started running.
+Process 16 with size 1 and time 50 started running.
+Process 17 with size 1 and time 41 started running.
+Process 18 with size 9 and time 53 started running.
+Process 18 with size 9 and time 53 couldn't enter memory.
+Process 19 with size 7 and time 44 started running.
+Process 19 with size 7 and time 44 couldn't enter memory.
+Process 20 with size 8 and time 51 started running.
+Process 14 with size 3 and time 23 finished succesfully.
+Process 20 with size 8 and time 51 couldn't enter memory.
+Process 21 with size 3 and time 48 started running.
+Process 22 with size 5 and time 37 started running.
+Process 15 with size 2 and time 30 finished succesfully.
+Process 22 with size 5 and time 37 couldn't enter memory.
+Process 23 with size 3 and time 55 started running.
+Process 10 with size 3 and time 57 finished succesfully.
+Process 12 with size 5 and time 50 finished succesfully.
+Process 24 with size 8 and time 57 started running.
+Process 13 with size 2 and time 47 finished succesfully.
+Process 25 with size 9 and time 52 started running.
+Process 26 with size 3 and time 24 started running.
+Process 25 with size 9 and time 52 couldn't enter memory.
+Process 27 with size 1 and time 38 started running.
+Process 26 with size 3 and time 24 couldn't enter memory.
+Process 17 with size 1 and time 41 finished succesfully.
+Process 16 with size 1 and time 50 finished succesfully.
+Process 28 with size 8 and time 60 started running.
+Process 28 with size 8 and time 60 couldn't enter memory.
+Process 29 with size 2 and time 20 started running.
+Process 30 with size 3 and time 44 started running.
+Process 30 with size 3 and time 44 couldn't enter memory.
+Process 31 with size 4 and time 43 started running.
+Process 32 with size 10 and time 27 started running.
+Process 31 with size 4 and time 43 couldn't enter memory.
+Process 21 with size 3 and time 48 finished succesfully.
+Process 32 with size 10 and time 27 couldn't enter memory.
+Process 33 with size 9 and time 44 started running.
+Process 33 with size 9 and time 44 couldn't enter memory.
+Process 34 with size 6 and time 23 started running.
+Process 29 with size 2 and time 20 finished succesfully.
+Process 35 with size 9 and time 46 started running.
+Process 34 with size 6 and time 23 couldn't enter memory.
+Process 23 with size 3 and time 55 finished succesfully.
+Process 35 with size 9 and time 46 couldn't enter memory.
+Process 36 with size 6 and time 56 started running.
+Process 27 with size 1 and time 38 finished succesfully.
+Process 37 with size 8 and time 56 started running.
+Process 24 with size 8 and time 57 finished succesfully.
+Process 37 with size 8 and time 56 couldn't enter memory.
+Process 38 with size 9 and time 45 started running.
+Process 39 with size 2 and time 36 started running.
+Process 40 with size 7 and time 43 started running.
+Process 41 with size 9 and time 37 started running.
+Process 40 with size 7 and time 43 couldn't enter memory.
+Process 41 with size 9 and time 37 couldn't enter memory.
+Process 42 with size 2 and time 27 started running.
+Process 43 with size 9 and time 41 started running.
+Process 43 with size 9 and time 41 couldn't enter memory.
+Process 44 with size 1 and time 24 started running.
+Process 45 with size 9 and time 31 started running.
+Process 46 with size 7 and time 54 started running.
+Process 45 with size 9 and time 31 couldn't enter memory.
+Process 47 with size 2 and time 23 started running.
+Process 46 with size 7 and time 54 couldn't enter memory.
+Process 47 with size 2 and time 23 couldn't enter memory.
+Process 48 with size 8 and time 21 started running.
+Process 39 with size 2 and time 36 finished succesfully.
+Process 38 with size 9 and time 45 finished succesfully.
+Process 48 with size 8 and time 21 couldn't enter memory.
+Process 49 with size 8 and time 22 started running.
+Process 36 with size 6 and time 56 finished succesfully.
+Process 42 with size 2 and time 27 finished succesfully.
+Process 50 with size 9 and time 56 started running.
+Process 44 with size 1 and time 24 finished succesfully.
+Process 51 with size 10 and time 20 started running.
+Process 51 with size 10 and time 20 couldn't enter memory.
+Process 52 with size 1 and time 25 started running.
+Process 53 with size 6 and time 25 started running.
+Process 53 with size 6 and time 25 couldn't enter memory.
+Process 54 with size 1 and time 52 started running.
+Process 55 with size 9 and time 34 started running.
+Process 49 with size 8 and time 22 finished succesfully.
+Process 55 with size 9 and time 34 couldn't enter memory.
+Process 56 with size 1 and time 52 started running.
+Process 57 with size 9 and time 24 started running.
+Process 57 with size 9 and time 24 couldn't enter memory.
+Process 58 with size 6 and time 49 started running.
+Process 52 with size 1 and time 25 finished succesfully.
+Process 59 with size 2 and time 28 started running.
+Process 59 with size 2 and time 28 couldn't enter memory.
+Process 60 with size 10 and time 28 started running.
+Process 60 with size 10 and time 28 couldn't enter memory.
+Process 61 with size 4 and time 41 started running.
+Process 61 with size 4 and time 41 couldn't enter memory.
+Process 62 with size 7 and time 37 started running.
+Process 62 with size 7 and time 37 couldn't enter memory.
+Process 63 with size 4 and time 25 started running.
+Process 50 with size 9 and time 56 finished succesfully.
+Process 63 with size 4 and time 25 couldn't enter memory.
+Process 64 with size 7 and time 33 started running.
+Process 65 with size 9 and time 48 started running.
+Process 65 with size 9 and time 48 couldn't enter memory.
+Process 66 with size 1 and time 21 started running.
+Process 54 with size 1 and time 52 finished succesfully.
+Process 67 with size 10 and time 22 started running.
+Process 67 with size 10 and time 22 couldn't enter memory.
+Process 68 with size 9 and time 50 started running.
+Process 56 with size 1 and time 52 finished succesfully.
+Process 69 with size 3 and time 59 started running.
+Process 68 with size 9 and time 50 couldn't enter memory.
+Process 58 with size 6 and time 49 finished succesfully.
+Process 70 with size 8 and time 53 started running.
+Process 70 with size 8 and time 53 couldn't enter memory.
+Process 71 with size 9 and time 20 started running.
+Process 71 with size 9 and time 20 couldn't enter memory.
+Process 72 with size 10 and time 24 started running.
+Process 66 with size 1 and time 21 finished succesfully.
+Process 64 with size 7 and time 33 finished succesfully.
+Process 72 with size 10 and time 24 couldn't enter memory.
+Process 73 with size 3 and time 45 started running.
+Process 74 with size 7 and time 51 started running.
+Process 75 with size 6 and time 48 started running.
+Process 75 with size 6 and time 48 couldn't enter memory.
+Process 76 with size 8 and time 36 started running.
+Process 76 with size 8 and time 36 couldn't enter memory.
+Process 77 with size 4 and time 23 started running.
+Process 78 with size 6 and time 53 started running.
+Process 78 with size 6 and time 53 couldn't enter memory.
+Process 79 with size 10 and time 37 started running.
+Process 79 with size 10 and time 37 couldn't enter memory.
+Process 80 with size 2 and time 40 started running.
+Process 81 with size 8 and time 37 started running.
+Process 81 with size 8 and time 37 couldn't enter memory.
+Process 82 with size 10 and time 57 started running.
+Process 69 with size 3 and time 59 finished succesfully.
+Process 83 with size 6 and time 48 started running.
+Process 82 with size 10 and time 57 couldn't enter memory.
+Process 77 with size 4 and time 23 finished succesfully.
+Process 73 with size 3 and time 45 finished succesfully.
+Process 83 with size 6 and time 48 couldn't enter memory.
+Process 84 with size 8 and time 48 started running.
+Process 85 with size 9 and time 31 started running.
+Process 85 with size 9 and time 31 couldn't enter memory.
+Process 86 with size 3 and time 20 started running.
+Process 74 with size 7 and time 51 finished succesfully.
+Process 87 with size 4 and time 26 started running.
+Process 88 with size 10 and time 35 started running.
+Process 89 with size 9 and time 21 started running.
+Process 88 with size 10 and time 35 couldn't enter memory.
+Process 80 with size 2 and time 40 finished succesfully.
+Process 89 with size 9 and time 21 couldn't enter memory.
+Process 90 with size 4 and time 48 started running.
+Process 90 with size 4 and time 48 couldn't enter memory.
+Process 91 with size 7 and time 26 started running.
+Process 91 with size 7 and time 26 couldn't enter memory.
+Process 92 with size 6 and time 57 started running.
+Process 86 with size 3 and time 20 finished succesfully.
+Process 93 with size 9 and time 58 started running.
+Process 92 with size 6 and time 57 couldn't enter memory.
+Process 93 with size 9 and time 58 couldn't enter memory.
+Process 94 with size 9 and time 41 started running.
+Process 87 with size 4 and time 26 finished succesfully.
+Process 94 with size 9 and time 41 couldn't enter memory.
+Process 95 with size 5 and time 60 started running.
+Process 84 with size 8 and time 48 finished succesfully.
+Process 96 with size 9 and time 41 started running.
+Process 97 with size 3 and time 44 started running.

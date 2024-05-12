@@ -125,10 +125,6 @@ bool firstFit(void *arg) {
             start = i + 1;
         }
     }
-<<<<<<< HEAD
-=======
-
->>>>>>> fio
     printf("    There is not enough space for process %d\n", thread->pid);
     return false;
 }
@@ -287,7 +283,6 @@ void registerProcess(void *arg, int action){
 
     fclose(file);
     sem_post(logsSemaphore);  // free
-    fclose(file);
 }
 
 /*----------------------------------------------------
@@ -305,7 +300,7 @@ void *allocateMainProcess(void *arg) {
     while (1) {
 
         createThread();
-        sleep(thread->distribution);
+        sleep(5);
         
     }
 
@@ -477,7 +472,6 @@ void accessSharedMemory() {
         perror("sem_open failed");
         exit(EXIT_FAILURE);
     }
-    fclose(file);
 }
 
 /*----------------------------------------------------
