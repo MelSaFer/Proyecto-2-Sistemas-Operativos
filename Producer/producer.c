@@ -276,6 +276,13 @@ void registerProcess(void *arg, int action){
     fclose(file);
 }
 
+/*----------------------------------------------------
+Funtion for allocate the main process
+Entries:
+    void *arg: thread data
+Output:
+    void
+----------------------------------------------------*/
 void *allocateMainProcess(void *arg) {
 
     struct MAIN_THREAD *thread = (struct MAIN_THREAD *)arg;
@@ -292,9 +299,7 @@ void *allocateMainProcess(void *arg) {
 }
 
 /*----------------------------------------------------
-Function: allocateProcess
-Description:
-    Allocate the process in memory
+Function for allocate the process in memory
 Entries:
     void *arg: thread data
 Description:
@@ -315,12 +320,29 @@ void *allocateProcess(void *arg) {
     } else {
         allocated = worstFit(thread);
     }
-    if(allocated){
-        thread->state = RUNNING;
-        sleep(thread->time);
-        thread->state = FINISHED;
-    }else{
-        thread->state = DEAD;
+    for (int i = 0; i < sharedControlMemoryPointer->lines; i++) {
+        if (sharedControlMemoryPointer->partitions[i].pid == thread->pid) {
+            if (allocated)
+            {
+                sem_wait(sharedMemorySemaphore);
+                sharedControlMemoryPointer->partitions[i].state = RUNNING;
+                sem_post(sharedMemorySemaphore);
+                sleep(thread->time);
+                sem_wait(sharedMemorySemaphore);
+                sharedControlMemoryPointer->partitions[i].state = FINISHED;
+                sem_post(sharedMemorySemaphore);
+                break;
+            }
+            else
+            {
+                //sem_wait("sharedMemorySemaphore", 0);
+                sem_wait(sharedMemorySemaphore);
+                sharedControlMemoryPointer->partitions[i].state = DEAD;
+                sem_post(sharedMemorySemaphore);
+                break;
+            }
+            
+        }
     }
 
     registerProcess(thread, 1);  
@@ -350,13 +372,15 @@ void deallocateProcess(void *arg) {
     }
     sem_post(sharedMemorySemaphore);
     // createThread();
-    free(thread);
+    //free(thread);
 }
 
 /*----------------------------------------------------
-Function: createThread
-Description:
-   This function is in charge of creating a new thread for the process
+Function for creating a new thread for the process
+Entries:
+    None
+output:
+    void
 ----------------------------------------------------*/
 void createThread() {
     struct THREAD *data = malloc(sizeof(struct THREAD));
@@ -472,6 +496,13 @@ int printAlgorithmMenu() {
     return choice - 1;
 }
 
+/*----------------------------------------------------
+Funtion for free the memory
+Entries:
+    None
+Output:
+    void
+----------------------------------------------------*/
 void freeMemory() {
     sem_wait(sharedMemorySemaphore);
     for (int i = 0; i < sharedControlMemoryPointer->lines; i++) {
@@ -517,6 +548,7 @@ void start() {
 
 }
 
+// Main function
 int main() {
     accessSharedMemory();
     algorithm = printAlgorithmMenu();
