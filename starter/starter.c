@@ -22,19 +22,14 @@ Estudiantes:
 #include "../include/thread.h"
 
 
-#define PROCESS_SHARED_MEMORY "files/process_mem"
-#define PROCESS_SHARED_MEMORY_ID 1
-
 #define SHARED_MEMORY "files/shared_mem"
 #define SHARED_MEMORY_ID 1
 
 // Shared Memory Ids for the process
-int processSharedMemId;
 int controlSharedMemoryId;
 // Shared Memory Keys for the process
-key_t processSharedMemoryKey;
 key_t controlSharedMemoryKey;
-// Process Shared Memory
+// Shared Memory
 struct SHAREDMEM* sharedMemory;
 
 sem_t *sharedMemorySemaphore, *logsSemaphore;
@@ -49,7 +44,6 @@ Output:
 int startEnvironment(int lines) {
 
     const char *filepath = SHARED_MEMORY;
-    
     // Create the file
     int fd = open(filepath, O_RDWR | O_CREAT, 0666);
     if (fd == -1) {
@@ -57,37 +51,7 @@ int startEnvironment(int lines) {
         exit(EXIT_FAILURE);
     }
     close(fd);
-
-    // Create the key we are going to use for the shared memory
-    processSharedMemoryKey = ftok(PROCESS_SHARED_MEMORY, PROCESS_SHARED_MEMORY_ID);
-    // Validate the creation of the key
-    if (processSharedMemoryKey == -1) {
-        perror("Error creating the key for the shared memory");
-        exit(1);
-    }
-
-    // Create the shared memory for the process
-    processSharedMemId = shmget(processSharedMemoryKey, sizeof(struct THREAD) * lines, 0666 | IPC_CREAT | IPC_EXCL);
-    // Validate the creation of the shared memory
-    if (processSharedMemId < 0) {
-        // If the shared memory already exists, get it
-        if (errno == EEXIST) {
-            // Get the shared memory
-            processSharedMemId = shmget(processSharedMemoryKey, sizeof(struct THREAD) * lines, 0666);
-            // Validate the shared memory
-            if (processSharedMemId < 0) {
-                perror("Error getting the shared memory:/)");
-                exit(1);
-            }
-        } else {
-            perror("Error creating the shared memory");
-            exit(1);
-        }
-    } else {
-        printf("\nControl memory segment created with id %d\n", processSharedMemId);
-    }
-
-    //--------------------------------------------------------------------------------	
+    
     // Create the key we are going to use for the shared memory
     controlSharedMemoryKey = ftok(SHARED_MEMORY, SHARED_MEMORY_ID);
     // Validate the creation of the key
